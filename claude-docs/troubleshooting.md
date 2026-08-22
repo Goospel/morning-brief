@@ -22,6 +22,7 @@
      각 항목의 frontmatter(summary)에서 재생성합니다. 내용을 바꾸려면 그 항목의
      summary를 고치세요(단일 출처). 최신 항목이 위. -->
 
+- [T-002](troubleshooting/T-002.md) · bash 큰따옴표 안의 백틱은 명령 치환으로 먹혀 문서의 코드 인용이 조용히 사라진다 — 스크립트는 성공으로 끝난다
 - [T-001](troubleshooting/T-001.md) · GitHub 레포명에 한글을 넣으면 거부가 아니라 조용히 하이픈으로 치환된다 — 요청은 201로 성공하므로 exit code로는 알 수 없다
 
 <!-- INDEX:END -->
