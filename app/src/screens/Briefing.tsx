@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { openURL } from '@apps-in-toss/web-framework';
+import { Device } from '@apps-in-toss/web-framework';
 import { getBriefing, cacheBriefing, readCachedBriefing, type BriefingResponse } from '../api';
 
 export function Briefing({ onSettings }: { onSettings: () => void }) {
@@ -60,7 +60,7 @@ export function Briefing({ onSettings }: { onSettings: () => void }) {
           <p>{c.summaryKo}</p>
           <footer>
             <span>{c.sourceName}</span>
-            <button onClick={() => openURL(c.url)}>원문 보기</button>
+            <button onClick={() => Device.openURL(c.url)}>원문 보기</button>
           </footer>
         </article>
       ))}

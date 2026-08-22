@@ -1,4 +1,4 @@
-import { Storage, appLogin } from '@apps-in-toss/web-framework';
+import { Storage, TossAuth } from '@apps-in-toss/web-framework';
 
 const BASE = import.meta.env.VITE_API_BASE as string;
 
@@ -23,7 +23,7 @@ async function getSession(): Promise<string | null> {
 
 /** 로그인해서 세션을 저장한다. onboarded 를 돌려준다. */
 export async function login(): Promise<{ onboarded: boolean }> {
-  const { authorizationCode, referrer } = await appLogin();
+  const { authorizationCode, referrer } = await TossAuth.login();
   const res = await fetch(`${BASE}/login`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
