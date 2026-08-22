@@ -1598,7 +1598,7 @@ git commit -m "feat: pg_cron 스케줄 4건 + Vault 기반 호출 헬퍼"
 - Modify: `changeLog.md`
 - Modify: `docs/superpowers/specs/2026-08-22-personal-briefing-design.md`
 
-- [ ] **Step 1: 전체 테스트 실행**
+- [x] **Step 1: 전체 테스트 실행**
 
 ```bash
 npm test
@@ -1606,7 +1606,7 @@ npm test
 
 기대: 35개 PASS, 0 FAIL.
 
-- [ ] **Step 2: 수집 → 요약 → 배달을 로컬에서 한 바퀴 돌린다**
+- [x] **Step 2: 수집 → 요약 → 배달을 로컬에서 한 바퀴 돌린다**
 
 `.env.local`에 `ANTHROPIC_API_KEY`를 넣고:
 
@@ -1637,7 +1637,7 @@ docker exec -i $(docker ps --format '{{.Names}}' | grep supabase_db | head -1) p
 
 기대: `n`이 1 이상. 이 숫자가 이 계획의 최종 성공 기준이다.
 
-- [ ] **Step 3: 설계 스펙에 변경점 5가지 반영**
+- [x] **Step 3: 설계 스펙에 변경점 5가지 반영**
 
 `docs/superpowers/specs/2026-08-22-personal-briefing-design.md`를 고친다:
 - 3절 아키텍처: 요약 잡을 `summarize-submit` / `summarize-collect` 2단계로 수정
@@ -1646,11 +1646,11 @@ docker exec -i $(docker ps --format '{{.Names}}' | grep supabase_db | head -1) p
 - 6절: "프롬프트 캐싱으로 추가 절감" 문장 삭제 (최소 프리픽스 미달로 캐시가 안 걸린다)
 - 9절: 요약 잡 테스트를 "LLM 목킹" → "응답 파서 단위 테스트 + 실제 한 바퀴 실행"으로 수정
 
-- [ ] **Step 4: plan.md 갱신**
+- [x] **Step 4: plan.md 갱신**
 
 Phase 2~5의 체크박스를 완료(`[x]`)로 바꾸고, Phase 6(프런트)을 🔜로 올린다.
 
-- [ ] **Step 5: changeLog.md 갱신**
+- [x] **Step 5: changeLog.md 갱신**
 
 맨 위에 항목을 추가한다:
 
@@ -1664,7 +1664,7 @@ Phase 2~5의 체크박스를 완료(`[x]`)로 바꾸고, Phase 6(프런트)을 �
 구현하며 스펙에서 바꾼 것 넷: 요약 잡 2단계 분할(Batch 비동기 + 함수 실행시간 제한), 점수 계산을 SQL에서 TS로(테스트 용이성), RLS 전면 차단(토스 로그인이 Supabase Auth가 아니라 userKey를 신뢰할 수 없다), 프롬프트 캐싱 제거(시스템 프롬프트가 최소 캐시 프리픽스에 못 미쳐 조용히 캐시되지 않는다).
 ```
 
-- [ ] **Step 6: 커밋과 PR**
+- [x] **Step 6: 커밋과 PR**
 
 한글 커밋 메시지는 인라인 `-m`이 CP949로 깨지므로 파일 경유로 넣는다.
 
