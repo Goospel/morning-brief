@@ -11,7 +11,7 @@
 
 - [x] git 레포 초기화, `.gitignore`(`.commit-msg-tmp` 포함)
 - [x] 작업 추적 3종(plan / changeLog / troubleshooting 분할 시스템 + pre-commit 훅)
-- [ ] GitHub 원격 레포 생성 및 push — ⚠️ 레포명 ASCII 필요([T-001](claude-docs/troubleshooting/T-001.md))
+- [x] GitHub 원격 레포 생성 및 push — [Goospel/morning-brief](https://github.com/Goospel/morning-brief). 레포명은 ASCII, 한글은 description에([T-001](claude-docs/troubleshooting/T-001.md))
 
 ## Phase 1 · 설계 ✅
 
