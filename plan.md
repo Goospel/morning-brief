@@ -19,41 +19,42 @@
 - [x] MVP 범위·아키텍처·데이터 모델·점수 규칙 확정
 - [x] 고정 어휘 정의(topic 12 / job_field 8 / household 3)
 
-## Phase 2~5 · 백엔드 파이프라인 🔜
+## Phase 2~5 · 백엔드 파이프라인 ✅
 
 > 상세 구현 계획: [docs/superpowers/plans/2026-08-22-backend-pipeline.md](docs/superpowers/plans/2026-08-22-backend-pipeline.md) — 태스크 14개, TDD 스텝 단위
 
 ### Phase 2 · 백엔드 기반
 
-- [ ] Supabase 프로젝트 생성, 로컬 개발 환경(`supabase` CLI) 구성
-- [ ] 스키마 마이그레이션 — `profiles` / `sources` / `articles` / `briefings` / `profile_rules`
-- [ ] RLS 전면 차단 — 정책을 두지 않아 anon/authenticated를 전부 막는다(토스 로그인은 Supabase Auth가 아니라 `userKey`를 신뢰할 수 없다). 앱은 전용 Edge Function 경유
-- [ ] 초기 `sources` 시드 — 국내 언론사 RSS + 직업 분야별 해외 영문 소스
-- [ ] 초기 `profile_rules` 시드 — 프로필 속성 → topic 가중치
+- [x] Supabase 프로젝트 생성, 로컬 개발 환경(`supabase` CLI) 구성
+- [x] 스키마 마이그레이션 — `profiles` / `sources` / `articles` / `briefings` / `profile_rules`
+- [x] RLS 전면 차단 — 정책을 두지 않아 anon/authenticated를 전부 막는다(토스 로그인은 Supabase Auth가 아니라 `userKey`를 신뢰할 수 없다). 앱은 전용 Edge Function 경유
+  - 차단만으로는 부족했다 — 최근 Supabase CLI가 신규 테이블을 Data API 롤에 자동 노출하지 않아, `service_role` GRANT 두 줄을 함께 넣어야 Edge Function이 `permission denied (42501)`로 죽지 않는다
+- [x] 초기 `sources` 시드 — 국내 언론사 RSS + 직업 분야별 해외 영문 소스. 등록 전 `npm run verify-feeds`로 실제 파싱 건수를 확인한다(태그 개수 같은 대리 지표로 판정하면 죽은 소스가 통과한다 — [T-003](claude-docs/troubleshooting/T-003.md))
+- [x] 초기 `profile_rules` 시드 — 프로필 속성 → topic 가중치
 
 ### Phase 3 · 수집 잡
 
-- [ ] RSS/Atom 파서 (TDD: 픽스처 기반, 깨진 XML·날짜 누락·중복 URL 케이스)
-- [ ] `articles` upsert (url UNIQUE 충돌 무시)
-- [ ] 03:00 KST 크론 등록
+- [x] RSS/Atom 파서 (TDD: 픽스처 기반, 깨진 XML·날짜 누락·중복 URL 케이스)
+- [x] `articles` upsert (url UNIQUE 충돌 무시)
+- [x] 03:00 KST 크론 등록
 
 ### Phase 4 · 요약 잡
 
-- [ ] Claude Batch API 요약 (Haiku 4.5, 고정 시스템 프롬프트). 프롬프트 캐싱은 안 쓴다 — 최소 캐시 프리픽스(~1,024토큰)에 못 미쳐 조용히 캐시되지 않는다
-- [ ] 제출/수거 2단계 분할 — Batch는 비동기인데 Edge Function엔 실행 시간 제한이 있다
-- [ ] 출력 파싱 — 한글 요약 + 고정 어휘 내 topic 태그
-- [ ] 실패 건은 `summary_ko` NULL 유지 → 다음 날 자동 재시도 (별도 재시도 큐 없음)
-- [ ] 04:00 KST 크론 등록
-- [ ] ⚠️ Batch 결과는 순서 보장이 없다 — `custom_id`로 키잉할 것
+- [x] Claude Batch API 요약 (Haiku 4.5, 고정 시스템 프롬프트). 프롬프트 캐싱은 안 쓴다 — 최소 캐시 프리픽스(~1,024토큰)에 못 미쳐 조용히 캐시되지 않는다
+- [x] 제출/수거 2단계 분할 — Batch는 비동기인데 Edge Function엔 실행 시간 제한이 있다
+- [x] 출력 파싱 — 한글 요약 + 고정 어휘 내 topic 태그
+- [x] 실패 건은 `summary_ko` NULL 유지 → 다음 날 자동 재시도 (별도 재시도 큐 없음)
+- [x] 04:00 KST 크론 등록
+- [x] ⚠️ Batch 결과는 순서 보장이 없다 — `custom_id`로 키잉할 것
 
 ### Phase 5 · 점수·배달 잡
 
-- [ ] 점수 함수 (TDD: 토픽 매치·신선도·7일 중복 제외)
-- [ ] 선정 규칙 (5~7건 / 한 토픽 최대 2건 / 해외 최소 1건 보장)
-- [ ] `briefings` 확정 저장
-- [ ] 매시 정각 크론 — `push_hour = 현재시 AND push_on`
+- [x] 점수 함수 (TDD: 토픽 매치·신선도·7일 중복 제외)
+- [x] 선정 규칙 (5~7건 / 한 토픽 최대 2건 / 해외 최소 1건 보장)
+- [x] `briefings` 확정 저장
+- [x] 매시 정각 크론 — `push_hour = 현재시 AND push_on`
 
-## Phase 6 · 프런트 ⬜
+## Phase 6 · 프런트 🔜
 
 - [ ] `create-ait-app` 스캐폴딩 (Vite + React + TS + TDS)
 - [ ] 토스 로그인 연동, `userKey` → `profiles` 매핑
