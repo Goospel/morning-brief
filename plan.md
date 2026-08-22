@@ -38,7 +38,9 @@
 - [x] `articles` upsert (url UNIQUE 충돌 무시)
 - [x] 03:00 KST 크론 등록
 
-### Phase 4 · 요약 잡
+### Phase 4 · 요약 잡 ⚠️ 구현 완료, 실행 미검증
+
+> Deno 부팅과 조기 리턴 경로까지만 확인됐다. Anthropic SDK 호출부(`batches.create` / `.retrieve` / `.results`)는 **한 번도 실행된 적이 없다.** 실제 키로 소량 호출해 요약·태그가 DB에 들어오는 것을 확인하기 전까지 이 Phase는 완료가 아니다.
 
 - [x] Claude Batch API 요약 (Haiku 4.5, 고정 시스템 프롬프트). 프롬프트 캐싱은 안 쓴다 — 최소 캐시 프리픽스(~1,024토큰)에 못 미쳐 조용히 캐시되지 않는다
 - [x] 제출/수거 2단계 분할 — Batch는 비동기인데 Edge Function엔 실행 시간 제한이 있다
