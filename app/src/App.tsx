@@ -1,63 +1,46 @@
-import { Asset, Button, Top } from "@toss/tds-mobile";
-import "./App.css";
+import { useEffect, useState } from 'react';
+import { Intro } from './screens/Intro';
+import { Onboarding } from './screens/Onboarding';
+import { Briefing } from './screens/Briefing';
+import { Settings } from './screens/Settings';
+import { getBriefing, hasSession } from './api';
 
-function App() {
-  return (
-    <>
-      <Top
-        title={<Top.TitleParagraph size={22}>반가워요</Top.TitleParagraph>}
-        subtitleBottom={
-          <Top.SubtitleParagraph size={17}>
-            앱인토스 개발을 시작해 보세요.
-          </Top.SubtitleParagraph>
-        }
-      />
+type Screen = 'loading' | 'intro' | 'onboarding' | 'briefing' | 'settings';
 
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "16px",
-          padding: "24px",
-        }}
-      >
-        <Button
-          as="a"
-          variant="weak"
-          href="https://developers-apps-in-toss.toss.im"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          개발자센터
-        </Button>
-        <Button
-          as="a"
-          variant="weak"
-          href="https://techchat-apps-in-toss.toss.im"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          개발자 커뮤니티
-        </Button>
-      </div>
+export default function App() {
+  const [screen, setScreen] = useState<Screen>('loading');
 
-      <div
-        style={{
-          position: "fixed",
-          bottom: "24px",
-          left: "50%",
-          transform: "translateX(-50%)",
-        }}
-      >
-        <Asset.Image
-          alt="apps in toss logo"
-          frameShape={{ width: 160 }}
-          backgroundColor="transparent"
-          src={`${import.meta.env.BASE_URL}appsintoss-logo.png`}
-        />
-      </div>
-    </>
-  );
+  // 앱 시작 분기 (설계 4절)
+  useEffect(() => {
+    void (async () => {
+      if (!(await hasSession())) { setScreen('intro'); return; }
+      try {
+        const b = await getBriefing();          // 401 이면 api.ts 가 조용히 재로그인한다
+        setScreen(b.onboarded ? 'briefing' : 'onboarding');
+      } catch {
+        setScreen('intro');
+      }
+    })();
+  }, []);
+
+  // 내비게이션 바 뒤로가기가 history 와 연동되면 그대로 동작한다
+  useEffect(() => {
+    const onPop = () => setScreen('briefing');
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
+  if (screen === 'loading') return <main style={{ padding: '24px' }}><p>불러오는 중…</p></main>;
+
+  if (screen === 'intro') {
+    return <Intro onDone={(onboarded) => setScreen(onboarded ? 'briefing' : 'onboarding')} />;
+  }
+  if (screen === 'onboarding') {
+    // 뒤로가기로 온보딩에 돌아올 수 없어야 한다
+    return <Onboarding onDone={() => { history.replaceState(null, '', '/'); setScreen('briefing'); }} />;
+  }
+  if (screen === 'settings') {
+    return <Settings onBack={() => history.back()} />;
+  }
+  return <Briefing onSettings={() => { history.pushState(null, '', '/settings'); setScreen('settings'); }} />;
 }
-
-export default App;
