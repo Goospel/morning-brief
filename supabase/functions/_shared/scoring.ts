@@ -95,9 +95,14 @@ export function selectBriefing(
   }
 
   // 해외 최소 1건 보장 — 차별점이 점수에 밀려 사라지지 않게 강제한다.
+  // 이 규칙은 per-topic 상한보다 우선한다(보장이 상한에 막히면 보장이 아니게 된다).
   if (picked.length > 0 && !picked.some((r) => r.c.lang === 'en')) {
     const bestEn = ranked.find((r) => r.c.lang === 'en');
-    if (bestEn) picked[picked.length - 1] = bestEn;
+    if (bestEn) {
+      // 자리가 남았으면 국내 기사를 밀어내지 않고 그냥 채운다.
+      if (picked.length < size) picked.push(bestEn);
+      else picked[picked.length - 1] = bestEn;
+    }
   }
 
   return picked.map((r) => r.c.id);

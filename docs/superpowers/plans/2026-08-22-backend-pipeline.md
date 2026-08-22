@@ -835,7 +835,7 @@ test('selectBriefing: 해외 후보가 아예 없으면 국내로만 채운다',
   const ids = selectBriefing(profile, rules, [
     candidate(1, ['tech']), candidate(2, ['ai']),
   ], NOW);
-  assert.deepEqual(ids.sort(), [1, 2]);
+  assert.deepEqual(ids.slice().sort((a, b) => a - b), [1, 2]);
 });
 
 test('selectBriefing: 후보가 없으면 빈 배열', () => {
@@ -850,6 +850,26 @@ test('selectBriefing: 동점이면 id 순으로 결정론적이다', () => {
     candidate(5, ['culture']), candidate(7, ['culture']), candidate(3, ['culture']),
   ], NOW);
   assert.deepEqual(a, b);
+});
+
+test('selectBriefing: 자리가 남으면 해외 기사를 교체가 아니라 추가로 넣는다', () => {
+  const ids = selectBriefing(profile, rules, [
+    candidate(1, ['tech']),
+    candidate(2, ['tech']),
+    candidate(99, ['tech'], 'en', 20),
+  ], NOW);
+  assert.equal(ids.length, 3, '국내 2건이 밀려나면 안 된다');
+  assert.ok(ids.includes(1) && ids.includes(2) && ids.includes(99));
+});
+
+test('selectBriefing: per-topic 상한에 막힌 해외 기사도 보장으로 들어간다', () => {
+  const ids = selectBriefing(profile, rules, [
+    candidate(1, ['tech']), candidate(2, ['tech']),
+    candidate(3, ['ai']), candidate(4, ['ai']),
+    candidate(5, ['finance']), candidate(6, ['realestate']),
+    candidate(99, ['tech'], 'en', 20),
+  ], NOW);
+  assert.ok(ids.includes(99), 'tech 가 이미 2건이어도 해외 보장이 이긴다');
 });
 ```
 
@@ -961,9 +981,14 @@ export function selectBriefing(
   }
 
   // 해외 최소 1건 보장 — 차별점이 점수에 밀려 사라지지 않게 강제한다.
+  // 이 규칙은 per-topic 상한보다 우선한다(보장이 상한에 막히면 보장이 아니게 된다).
   if (picked.length > 0 && !picked.some((r) => r.c.lang === 'en')) {
     const bestEn = ranked.find((r) => r.c.lang === 'en');
-    if (bestEn) picked[picked.length - 1] = bestEn;
+    if (bestEn) {
+      // 자리가 남았으면 국내 기사를 밀어내지 않고 그냥 채운다.
+      if (picked.length < size) picked.push(bestEn);
+      else picked[picked.length - 1] = bestEn;
+    }
   }
 
   return picked.map((r) => r.c.id);
@@ -976,7 +1001,7 @@ export function selectBriefing(
 npm test
 ```
 
-기대: 35개 PASS.
+기대: 37개 PASS.
 
 - [x] **Step 5: 커밋**
 
