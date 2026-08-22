@@ -132,7 +132,8 @@ test('selectBriefing: 자리가 남으면 해외 기사를 교체가 아니라 �
   assert.ok(ids.includes(1) && ids.includes(2) && ids.includes(99));
 });
 
-test('selectBriefing: per-topic 상한에 막힌 해외 기사도 보장으로 들어간다', () => {
+// 위 테스트가 push 분기(자리 남음), 이 테스트가 교체 분기(꽉 참)를 덮는다.
+test('selectBriefing: 자리가 꽉 찼으면 최하위를 해외 기사로 교체한다', () => {
   const ids = selectBriefing(profile, rules, [
     candidate(1, ['tech']), candidate(2, ['tech']),
     candidate(3, ['ai']), candidate(4, ['ai']),
