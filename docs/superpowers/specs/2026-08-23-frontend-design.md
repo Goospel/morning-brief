@@ -154,15 +154,52 @@ mTLS가 어디서 되든 안 되든, **바뀌는 것은 이 파일의 내부와 
 | 추가 인프라 | 0 | 배포 1개 + 시크릿 2개 | 서버 1대 + DB 접근 경로 이중화 |
 | 운영 부담 | 없음 | 낮음 (토스 중계 전용, 상태 없음) | 높음 — 스택이 둘로 갈라짐 |
 | 실패 시 되돌리기 | B로 후퇴: `toss.ts` 내부만 교체 | Node `https.Agent({cert,key})`는 stdlib 표준 경로라 실패 여지가 사실상 없음 | — |
-| 판정 | **미확인 — 실측 필요** | 확실히 됨 | 기각 — 문제(토스 호출 3개)에 비해 옮기는 코드가 너무 많다 |
+| 판정 | **로컬 실측 통과** (아래) | 확실히 됨 | 기각 — 문제(토스 호출 3개)에 비해 옮기는 코드가 너무 많다 |
 
-### 권고: A를 스파이크로 먼저 실측하고, 안 되면 B
+### 스파이크 결과 — A 채택 (2026-08-23 실측)
 
-**구현 착수 전 태스크 0으로 A를 실측한다** (토스 인증서 없이 가능):
+**supabase-edge-runtime 1.74.3 (Deno 2.1.4) 로컬에서 mTLS 핸드셰이크가 성립한다.**
 
-1. 프로브 Edge Function 배포: `Deno.createHttpClient({ cert, key })`를 만들어 mTLS 테스트 엔드포인트 `https://client.badssl.com/`에 fetch — badssl이 배포하는 공개 테스트 클라이언트 인증서(`badssl.com-client.pem`, 암호 공개됨)를 쓴다.
-2. **판정은 HTTP 200 응답 본문으로만** 한다 — `Deno.createHttpClient`가 "존재한다"는 것은 핸드셰이크가 된다는 증거가 아니다(문자열의 존재는 행위의 증거가 아니다 — T-003 원칙). unstable 거부·핸드셰이크 실패·타임아웃은 전부 "안 됨"이다.
-3. 성공 → A로 구현. 실패 → B로 구현(권장 배치: Cloudflare Workers + mTLS 인증서 바인딩. Workers가 막히면 Fly.io Node).
+```
+hasCreateHttpClient : true
+인증서 있음         : HTTP 200   (badssl 클라이언트 페이지 본문 수신)
+인증서 없음         : HTTP 400   (No required SSL certificate was sent)
+```
+
+판정은 설계대로 **HTTP 200 응답 본문으로만** 했다 — `Deno.createHttpClient`가 존재한다는 것은 핸드셰이크가 된다는 증거가 아니다(T-003 원칙). 그래서 세 겹으로 통제했다:
+
+1. **인증서 유효성 확인** — badssl 클라이언트 인증서의 `notAfter`가 2028-08-17로 살아 있음을 `openssl x509`로 먼저 확인. 만료된 인증서로 실패하면 런타임 문제로 오진한다.
+2. **Node 대조군** — 같은 인증서로 `https.Agent({cert, key})`가 200을 받는 것을 먼저 확인. 실패했다면 원인이 인증서인지 런타임인지 가를 수 없다.
+3. **음성 대조** — 인증서 없이 같은 곳에 쏘아 400이 나오는 것을 확인. 이게 없으면 200이 "인증서 덕분"인지 "원래 아무나 되는 곳"인지 모른다.
+
+**재현 절차** (클라우드 재확인 때 그대로 쓴다):
+
+```bash
+curl -sSo client.p12 https://badssl.com/certs/badssl.com-client.p12
+openssl pkcs12 -in client.p12 -passin pass:badssl.com -nokeys  -out cert.pem -legacy
+openssl pkcs12 -in client.p12 -passin pass:badssl.com -nocerts -nodes -out key.pem -legacy
+openssl x509 -in cert.pem -noout -dates     # notAfter 가 미래인지 먼저 본다
+```
+
+```ts
+// supabase/functions/probe-mtls/index.ts — 스파이크 전용, 확인 후 삭제한다
+Deno.serve(async () => {
+  const dec = (b64: string) => new TextDecoder().decode(
+    Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)),
+  );
+  const client = (Deno as any).createHttpClient({
+    cert: dec(Deno.env.get('MTLS_CERT_B64')!),
+    key: dec(Deno.env.get('MTLS_KEY_B64')!),
+  });
+  const withCert = await fetch('https://client.badssl.com/', { client } as RequestInit);
+  const without  = await fetch('https://client.badssl.com/');
+  return Response.json({ withCert: withCert.status, withoutCert: without.status });
+});
+```
+
+PEM은 여러 줄이라 env 파일에 그대로 못 넣는다 — `base64 -w0`으로 한 줄로 만들어 `MTLS_CERT_B64`/`MTLS_KEY_B64`로 주입한다.
+
+⚠️ **로컬 통과는 클라우드 통과가 아니다.** 로컬은 Docker 안 edge-runtime이고 Supabase 클라우드는 샌드박스 정책이 다를 수 있다. **클라우드 프로젝트가 생기는 즉시 같은 프로브를 배포해 한 번 더 확인한다** — 거기서 실패하면 그때 B로 후퇴하며, 아래 「A→B 전환 시 고치는 것」이 그대로 적용된다.
 
 **A→B 전환 시 고치는 것 (전량)**:
 
@@ -271,7 +308,8 @@ Storage에서 session 읽기
 
 | # | 항목 | 영향 | 해소 시점·방법 |
 |---|---|---|---|
-| 1 | Edge Function에서 `Deno.createHttpClient` mTLS 가능 여부 | 토스 호출 전송 방식 (A/B) | T0 스파이크. 실패해도 B로 후퇴 — 설계 변경 없음 |
+| 1 | ~~Edge Function에서 `Deno.createHttpClient` mTLS 가능 여부~~ | ~~토스 호출 전송 방식 (A/B)~~ | **해소(로컬)** 2026-08-23 — edge-runtime 1.74.3에서 200/400 대조 통과. 3절 참조 |
+| 1b | 위 결과가 Supabase **클라우드**에서도 유지되는지 | A 채택이 뒤집히면 B로 후퇴 | 클라우드 프로젝트 생성 직후 같은 프로브 배포. 3절에 재현 절차 있음 |
 | 2 | badssl 성공 ≠ 토스 성공 | A 채택 후 뒤집힐 가능성 | 토스 인증서 수령 즉시 무효 코드 1발로 TLS 통과 재확인 |
 | 3 | unlink 콜백의 인증 방식·페이로드 스키마 | 콜백 위조로 타인 데이터 삭제 가능성 | 콘솔 등록 시점에 문서·실페이로드로 확정. 확정 전에는 로깅+존재 검증만 |
 | 4 | `openURL`이 외부 브라우저인지 / 뉴스 링크가 운영 정책 허용인지 | 저작권 방침("외부 브라우저로 연다")·심사 | T6 실기기 확인 + 정책 문서 확인 |
