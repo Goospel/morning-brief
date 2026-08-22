@@ -8,6 +8,10 @@
     "skipLibCheck": true,
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["../supabase/functions/_shared/*"]
+    },
     "isolatedModules": true,
     "moduleDetection": "force",
     "noEmit": true,
