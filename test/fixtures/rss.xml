@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Example News</title>
+    <item>
+      <title>첫 번째 기사</title>
+      <link>https://example.com/a</link>
+      <pubDate>Fri, 21 Aug 2026 10:00:00 +0900</pubDate>
+      <description>&lt;p&gt;본문 &lt;b&gt;발췌&lt;/b&gt;입니다.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>날짜가 없는 기사</title>
+      <link>https://example.com/b</link>
+      <description>버려져야 한다</description>
+    </item>
+    <item>
+      <title>두 번째 기사</title>
+      <link>https://example.com/c</link>
+      <pubDate>Thu, 20 Aug 2026 08:30:00 +0900</pubDate>
+      <description>두 번째 발췌</description>
+    </item>
+  </channel>
+</rss>

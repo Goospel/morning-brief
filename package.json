@@ -1,0 +1,12 @@
+{
+  "name": "morning-brief",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "verify-feeds": "node scripts/verify-feeds.mjs"
+  },
+  "dependencies": {
+    "fast-xml-parser": "5.11.0"
+  }
+}

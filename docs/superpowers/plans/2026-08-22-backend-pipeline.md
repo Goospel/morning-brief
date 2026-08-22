@@ -33,7 +33,7 @@
 | 파일 | 책임 |
 |---|---|
 | `package.json` | Node 테스트용 의존성과 `test` 스크립트 |
-| `deno.json` | Edge Function용 import 맵 (Node와 같은 모듈 지정자를 쓰게 함) |
+| `supabase/functions/deno.json` | Edge Function용 import 맵 (Node와 같은 모듈 지정자를 쓰게 함) |
 | `supabase/migrations/0001_schema.sql` | 테이블·인덱스·RLS 잠금 |
 | `supabase/migrations/0002_seed_rules.sql` | `profile_rules` 시드 |
 | `supabase/migrations/0003_seed_sources.sql` | `sources` 시드 (검증 통과한 피드만) |
@@ -58,11 +58,11 @@
 
 **Files:**
 - Create: `package.json`
-- Create: `deno.json`
+- Create: `supabase/functions/deno.json`
 - Modify: `.gitignore`
 - Create: `supabase/config.toml` (CLI가 생성)
 
-- [ ] **Step 0: 작업 브랜치 생성**
+- [x] **Step 0: 작업 브랜치 생성**
 
 main 직접 편집은 훅이 막는다. 리모트를 당긴 뒤 `origin/main`에서 바로 뗀다.
 
@@ -73,7 +73,7 @@ git checkout -b feat/backend-pipeline origin/main
 
 기대: `Switched to a new branch 'feat/backend-pipeline'`
 
-- [ ] **Step 1: Supabase 프로젝트 초기화**
+- [x] **Step 1: Supabase 프로젝트 초기화**
 
 ```bash
 npx --yes supabase@latest init
@@ -81,7 +81,7 @@ npx --yes supabase@latest init
 
 기대 출력: `Finished supabase init.` — `supabase/config.toml`이 생긴다.
 
-- [ ] **Step 2: `package.json` 작성**
+- [x] **Step 2: `package.json` 작성**
 
 ```json
 {
@@ -98,9 +98,11 @@ npx --yes supabase@latest init
 }
 ```
 
-- [ ] **Step 3: `deno.json` 작성**
+- [x] **Step 3: `supabase/functions/deno.json` 작성**
 
 Edge Function은 Deno에서 돈다. import 맵을 두면 `_shared/` 모듈이 Node와 **같은 지정자**를 쓸 수 있다.
+
+⚠️ **레포 루트가 아니라 `supabase/functions/` 안**에 둔다 — edge-runtime 컨테이너는 `supabase/functions` 만 마운트해서 루트 import 맵은 컨테이너 안에 아예 존재하지 않고, 그 상태에서는 함수 4개가 전부 부팅에 실패한다.
 
 ```json
 {
@@ -112,7 +114,7 @@ Edge Function은 Deno에서 돈다. import 맵을 두면 `_shared/` 모듈이 No
 }
 ```
 
-- [ ] **Step 4: `.gitignore`에 추가**
+- [x] **Step 4: `.gitignore`에 추가**
 
 기존 내용 아래에 덧붙인다:
 
@@ -121,7 +123,7 @@ supabase/.temp/
 supabase/.branches/
 ```
 
-- [ ] **Step 5: 의존성 설치와 확인**
+- [x] **Step 5: 의존성 설치와 확인**
 
 ```bash
 npm install
@@ -129,10 +131,10 @@ npm install
 
 기대: `node_modules/fast-xml-parser`가 생긴다.
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
-git add package.json package-lock.json deno.json .gitignore supabase/config.toml
+git add package.json package-lock.json supabase/functions/deno.json .gitignore supabase/config.toml
 git commit -m "chore: Supabase 프로젝트 스캐폴딩"
 ```
 
@@ -143,7 +145,7 @@ git commit -m "chore: Supabase 프로젝트 스캐폴딩"
 **Files:**
 - Create: `supabase/migrations/0001_schema.sql`
 
-- [ ] **Step 1: 마이그레이션 파일 작성**
+- [x] **Step 1: 마이그레이션 파일 작성**
 
 ```sql
 -- 프로필: 토스 userKey 가 PK. 생일은 연도만 보관한다(최소수집).
@@ -227,9 +229,15 @@ alter table articles        enable row level security;
 alter table summary_batches enable row level security;
 alter table briefings       enable row level security;
 alter table profile_rules   enable row level security;
+
+-- RLS 로 anon/authenticated 는 이미 막혀 있다. 실제로 접근하는 것은 service_role 뿐인데,
+-- 최근 Supabase CLI 는 신규 테이블을 Data API 롤에 자동 노출하지 않는다.
+-- 이 GRANT 가 없으면 Edge Function 이 permission denied (42501) 로 전부 죽는다.
+grant select, insert, update, delete on all tables in schema public to service_role;
+grant usage, select on all sequences in schema public to service_role;
 ```
 
-- [ ] **Step 2: 로컬 DB에 적용해 검증**
+- [x] **Step 2: 로컬 DB에 적용해 검증**
 
 Docker가 떠 있어야 한다.
 
@@ -240,7 +248,7 @@ npx supabase db reset
 
 기대 출력: 마이그레이션이 오류 없이 적용되고 `Finished supabase db reset.`
 
-- [ ] **Step 3: 테이블 생성과 RLS 상태 확인**
+- [x] **Step 3: 테이블 생성과 RLS 상태 확인**
 
 컨테이너 이름을 먼저 잡는다 (프로젝트 디렉터리명에서 오므로 환경마다 다르다):
 
@@ -256,7 +264,7 @@ docker exec -i "$DB" psql -U postgres -c "select relname, relrowsecurity from pg
 
 기대: `articles`, `briefings`, `profile_rules`, `profiles`, `sources`, `summary_batches` 6행이 나오고 `relrowsecurity`가 전부 `t`.
 
-- [ ] **Step 4: 커밋**
+- [x] **Step 4: 커밋**
 
 ```bash
 git add supabase/migrations/0001_schema.sql
@@ -273,7 +281,7 @@ git commit -m "feat: 스키마 마이그레이션 (6테이블 + RLS 전면 차�
 - Create: `supabase/functions/_shared/kst.ts`
 - Test: `test/kst.test.ts`
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 ```typescript
 import { test } from 'node:test';
@@ -301,7 +309,7 @@ test('kstDateString: UTC 14시는 KST 기준 같은 날짜', () => {
 });
 ```
 
-- [ ] **Step 2: 테스트 실행해 실패 확인**
+- [x] **Step 2: 테스트 실행해 실패 확인**
 
 ```bash
 npm test
@@ -309,7 +317,7 @@ npm test
 
 기대: 모듈을 찾을 수 없다는 에러로 FAIL.
 
-- [ ] **Step 3: 구현**
+- [x] **Step 3: 구현**
 
 ```typescript
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
@@ -327,7 +335,7 @@ export function kstDateString(now: Date): string {
 
 한국은 서머타임이 없어 고정 +9 오프셋이 항상 맞다. `Intl`을 쓸 이유가 없다.
 
-- [ ] **Step 4: 테스트 실행해 통과 확인**
+- [x] **Step 4: 테스트 실행해 통과 확인**
 
 ```bash
 npm test
@@ -335,7 +343,7 @@ npm test
 
 기대: 5개 PASS.
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add supabase/functions/_shared/kst.ts test/kst.test.ts
@@ -351,7 +359,7 @@ git commit -m "feat: KST 시각 변환 헬퍼"
 - Test: `test/rss.test.ts`
 - Create: `test/fixtures/rss.xml`, `test/fixtures/atom.xml`, `test/fixtures/single-item.xml`
 
-- [ ] **Step 1: 픽스처 3개 작성**
+- [x] **Step 1: 픽스처 3개 작성**
 
 `test/fixtures/rss.xml`:
 
@@ -419,7 +427,7 @@ git commit -m "feat: KST 시각 변환 헬퍼"
 </rss>
 ```
 
-- [ ] **Step 2: 실패하는 테스트 작성**
+- [x] **Step 2: 실패하는 테스트 작성**
 
 ```typescript
 import { test } from 'node:test';
@@ -475,7 +483,7 @@ test('빈 문자열도 예외를 던진다', () => {
 });
 ```
 
-- [ ] **Step 3: 테스트 실행해 실패 확인**
+- [x] **Step 3: 테스트 실행해 실패 확인**
 
 ```bash
 npm test
@@ -483,7 +491,7 @@ npm test
 
 기대: `parseFeed`를 찾을 수 없다는 에러로 FAIL.
 
-- [ ] **Step 4: 구현**
+- [x] **Step 4: 구현**
 
 ```typescript
 import { XMLParser, XMLValidator } from 'fast-xml-parser';
@@ -562,7 +570,7 @@ export function parseFeed(xml: string): FeedItem[] {
 }
 ```
 
-- [ ] **Step 5: 테스트 실행해 통과 확인**
+- [x] **Step 5: 테스트 실행해 통과 확인**
 
 ```bash
 npm test
@@ -570,7 +578,7 @@ npm test
 
 기대: 13개 PASS (kst 5 + rss 8).
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git add supabase/functions/_shared/rss.ts test/rss.test.ts test/fixtures
@@ -588,7 +596,7 @@ Claude가 JSON을 돌려주지만 신뢰하지 않는다. 파싱 실패나 어�
 - Create: `supabase/functions/_shared/summary.ts`
 - Test: `test/summary.test.ts`
 
-- [ ] **Step 1: 고정 어휘 상수 작성**
+- [x] **Step 1: 고정 어휘 상수 작성**
 
 ```typescript
 export const TOPICS = [
@@ -604,7 +612,7 @@ export function isTopic(v: string): v is Topic {
 }
 ```
 
-- [ ] **Step 2: 실패하는 테스트 작성**
+- [x] **Step 2: 실패하는 테스트 작성**
 
 ```typescript
 import { test } from 'node:test';
@@ -648,7 +656,7 @@ test('topics 가 배열이 아니면 null 을 준다', () => {
 });
 ```
 
-- [ ] **Step 3: 테스트 실행해 실패 확인**
+- [x] **Step 3: 테스트 실행해 실패 확인**
 
 ```bash
 npm test
@@ -656,7 +664,7 @@ npm test
 
 기대: `parseSummary`를 찾을 수 없다는 에러로 FAIL.
 
-- [ ] **Step 4: 구현**
+- [x] **Step 4: 구현**
 
 ```typescript
 import { isTopic, type Topic } from './topics.ts';
@@ -700,7 +708,7 @@ export function parseSummary(raw: string): Summary | null {
 }
 ```
 
-- [ ] **Step 5: 테스트 실행해 통과 확인**
+- [x] **Step 5: 테스트 실행해 통과 확인**
 
 ```bash
 npm test
@@ -708,7 +716,7 @@ npm test
 
 기대: 21개 PASS.
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git add supabase/functions/_shared/topics.ts supabase/functions/_shared/summary.ts test/summary.test.ts
@@ -725,7 +733,7 @@ git commit -m "feat: 고정 어휘 + 요약 응답 파서"
 - Create: `supabase/functions/_shared/scoring.ts`
 - Test: `test/scoring.test.ts`
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 ```typescript
 import { test } from 'node:test';
@@ -835,7 +843,7 @@ test('selectBriefing: 해외 후보가 아예 없으면 국내로만 채운다',
   const ids = selectBriefing(profile, rules, [
     candidate(1, ['tech']), candidate(2, ['ai']),
   ], NOW);
-  assert.deepEqual(ids.sort(), [1, 2]);
+  assert.deepEqual(ids.slice().sort((a, b) => a - b), [1, 2]);
 });
 
 test('selectBriefing: 후보가 없으면 빈 배열', () => {
@@ -851,9 +859,29 @@ test('selectBriefing: 동점이면 id 순으로 결정론적이다', () => {
   ], NOW);
   assert.deepEqual(a, b);
 });
+
+test('selectBriefing: 자리가 남으면 해외 기사를 교체가 아니라 추가로 넣는다', () => {
+  const ids = selectBriefing(profile, rules, [
+    candidate(1, ['tech']),
+    candidate(2, ['tech']),
+    candidate(99, ['tech'], 'en', 20),
+  ], NOW);
+  assert.equal(ids.length, 3, '국내 2건이 밀려나면 안 된다');
+  assert.ok(ids.includes(1) && ids.includes(2) && ids.includes(99));
+});
+
+test('selectBriefing: per-topic 상한에 막힌 해외 기사도 보장으로 들어간다', () => {
+  const ids = selectBriefing(profile, rules, [
+    candidate(1, ['tech']), candidate(2, ['tech']),
+    candidate(3, ['ai']), candidate(4, ['ai']),
+    candidate(5, ['finance']), candidate(6, ['realestate']),
+    candidate(99, ['tech'], 'en', 20),
+  ], NOW);
+  assert.ok(ids.includes(99), 'tech 가 이미 2건이어도 해외 보장이 이긴다');
+});
 ```
 
-- [ ] **Step 2: 테스트 실행해 실패 확인**
+- [x] **Step 2: 테스트 실행해 실패 확인**
 
 ```bash
 npm test
@@ -861,7 +889,7 @@ npm test
 
 기대: `scoring.ts`를 찾을 수 없다는 에러로 FAIL.
 
-- [ ] **Step 3: 구현**
+- [x] **Step 3: 구현**
 
 ```typescript
 export type Profile = {
@@ -961,24 +989,29 @@ export function selectBriefing(
   }
 
   // 해외 최소 1건 보장 — 차별점이 점수에 밀려 사라지지 않게 강제한다.
+  // 이 규칙은 per-topic 상한보다 우선한다(보장이 상한에 막히면 보장이 아니게 된다).
   if (picked.length > 0 && !picked.some((r) => r.c.lang === 'en')) {
     const bestEn = ranked.find((r) => r.c.lang === 'en');
-    if (bestEn) picked[picked.length - 1] = bestEn;
+    if (bestEn) {
+      // 자리가 남았으면 국내 기사를 밀어내지 않고 그냥 채운다.
+      if (picked.length < size) picked.push(bestEn);
+      else picked[picked.length - 1] = bestEn;
+    }
   }
 
   return picked.map((r) => r.c.id);
 }
 ```
 
-- [ ] **Step 4: 테스트 실행해 통과 확인**
+- [x] **Step 4: 테스트 실행해 통과 확인**
 
 ```bash
 npm test
 ```
 
-기대: 35개 PASS.
+기대: 37개 PASS.
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add supabase/functions/_shared/scoring.ts test/scoring.test.ts
@@ -992,7 +1025,7 @@ git commit -m "feat: 개인화 점수·선정 규칙"
 **Files:**
 - Create: `supabase/functions/collect/index.ts`
 
-- [ ] **Step 1: 구현**
+- [x] **Step 1: 구현**
 
 ```typescript
 import { createClient } from '@supabase/supabase-js';
@@ -1055,7 +1088,7 @@ Deno.serve(async () => {
 });
 ```
 
-- [ ] **Step 2: 로컬에서 실행해 확인**
+- [x] **Step 2: 로컬에서 실행해 확인**
 
 Task 11의 소스 시드가 아직 없으면 0건이 정상이다. 함수가 뜨는지만 본다.
 
@@ -1071,7 +1104,7 @@ curl -s http://127.0.0.1:54321/functions/v1/collect
 
 기대: `{"sources":0,"inserted":0,"failures":[]}` 형태의 JSON.
 
-- [ ] **Step 3: 커밋**
+- [x] **Step 3: 커밋**
 
 ```bash
 git add supabase/functions/collect/index.ts
@@ -1085,7 +1118,7 @@ git commit -m "feat: RSS 수집 Edge Function"
 **Files:**
 - Create: `supabase/functions/summarize-submit/index.ts`
 
-- [ ] **Step 1: 구현**
+- [x] **Step 1: 구현**
 
 ```typescript
 import { createClient } from '@supabase/supabase-js';
@@ -1147,7 +1180,7 @@ Deno.serve(async () => {
 });
 ```
 
-- [ ] **Step 2: 커밋**
+- [x] **Step 2: 커밋**
 
 ```bash
 git add supabase/functions/summarize-submit/index.ts
@@ -1161,7 +1194,7 @@ git commit -m "feat: Claude Batch API 요약 제출 잡"
 **Files:**
 - Create: `supabase/functions/summarize-collect/index.ts`
 
-- [ ] **Step 1: 구현**
+- [x] **Step 1: 구현**
 
 ```typescript
 import { createClient } from '@supabase/supabase-js';
@@ -1217,7 +1250,7 @@ Deno.serve(async () => {
 });
 ```
 
-- [ ] **Step 2: 커밋**
+- [x] **Step 2: 커밋**
 
 ```bash
 git add supabase/functions/summarize-collect/index.ts
@@ -1231,7 +1264,7 @@ git commit -m "feat: Batch 결과 수거·반영 잡"
 **Files:**
 - Create: `supabase/functions/deliver/index.ts`
 
-- [ ] **Step 1: 구현**
+- [x] **Step 1: 구현**
 
 ```typescript
 import { createClient } from '@supabase/supabase-js';
@@ -1312,7 +1345,7 @@ Deno.serve(async () => {
 });
 ```
 
-- [ ] **Step 2: 커밋**
+- [x] **Step 2: 커밋**
 
 ```bash
 git add supabase/functions/deliver/index.ts
@@ -1329,12 +1362,15 @@ git commit -m "feat: 브리핑 배달 잡 (점수 계산 + briefings 확정)"
 - Create: `scripts/verify-feeds.mjs`
 - Create: `supabase/migrations/0003_seed_sources.sql`
 
-- [ ] **Step 1: 검증 스크립트 작성**
+- [x] **Step 1: 검증 스크립트 작성**
 
 ```javascript
 // 후보 피드를 실제로 받아 파싱까지 되는지 확인한다.
 // 통과한 줄만 골라 0003_seed_sources.sql 에 옮긴다.
-import { XMLValidator } from 'fast-xml-parser';
+//
+// 판정은 파이프라인이 실제로 쓰는 parseFeed 로 한다 — 원시 <item> 개수 같은
+// 대리 지표로 판정하면 파싱 0건인 피드를 통과시킨다(claude-docs/troubleshooting/T-003.md).
+import { parseFeed } from '../supabase/functions/_shared/rss.ts';
 
 const CANDIDATES = [
   // name, feed_url, lang, topics
@@ -1359,11 +1395,13 @@ for (const [name, url, lang, topics] of CANDIDATES) {
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const xml = await res.text();
-    const valid = XMLValidator.validate(xml);
-    if (valid !== true) throw new Error(`invalid XML: ${valid.err.msg}`);
-    const items = (xml.match(/<item[\s>]/g)?.length ?? 0) + (xml.match(/<entry[\s>]/g)?.length ?? 0);
-    if (items === 0) throw new Error('항목 0건');
-    console.log(`  OK   ${name} (${items}건)`);
+    // 원시 개수는 판정이 아니라 진단용 — 파싱 수와 어긋나면 그 차이 자체가 신호다.
+    const raw = (xml.match(/<item[\s>]/g)?.length ?? 0) + (xml.match(/<entry[\s>]/g)?.length ?? 0);
+    const parsed = parseFeed(xml).length;
+    if (parsed === 0) {
+      throw new Error(`원시 ${raw}건인데 파싱 0건 (url·title·날짜 중 빠진 항목)`);
+    }
+    console.log(`  OK   ${name} (파싱 ${parsed} / 원시 ${raw})`);
     ok.push([name, url, lang, topics]);
   } catch (e) {
     console.log(`  FAIL ${name} — ${e.message}`);
@@ -1378,7 +1416,7 @@ console.log(ok.map(([n, u, l, t]) =>
 function q(s) { return `'${String(s).replace(/'/g, "''")}'`; }
 ```
 
-- [ ] **Step 2: 검증 실행**
+- [x] **Step 2: 검증 실행**
 
 ```bash
 npm run verify-feeds
@@ -1386,7 +1424,7 @@ npm run verify-feeds
 
 기대: 각 후보에 `OK` 또는 `FAIL`이 찍히고, 마지막에 붙여넣을 SQL이 출력된다. **FAIL한 것은 시드에 넣지 않는다** — 죽은 URL을 시드에 넣으면 수집 잡이 매일 조용히 실패한다.
 
-- [ ] **Step 3: 통과분으로 마이그레이션 작성**
+- [x] **Step 3: 통과분으로 마이그레이션 작성**
 
 Step 2 출력의 `insert into sources ...` 블록을 그대로 `supabase/migrations/0003_seed_sources.sql`에 붙여넣는다. 파일 첫 줄에 주석을 단다:
 
@@ -1395,7 +1433,7 @@ Step 2 출력의 `insert into sources ...` 블록을 그대로 `supabase/migrati
 -- 소스를 늘릴 때도 npm run verify-feeds 를 먼저 돌린다.
 ```
 
-- [ ] **Step 4: 적용 확인**
+- [x] **Step 4: 적용 확인**
 
 ```bash
 npx supabase db reset
@@ -1404,7 +1442,7 @@ docker exec -i $(docker ps --format '{{.Names}}' | grep supabase_db | head -1) p
 
 기대: `ko`와 `en`이 각각 1건 이상.
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add scripts/verify-feeds.mjs supabase/migrations/0003_seed_sources.sql
@@ -1418,7 +1456,7 @@ git commit -m "feat: 피드 검증 스크립트 + 소스 시드"
 **Files:**
 - Create: `supabase/migrations/0002_seed_rules.sql`
 
-- [ ] **Step 1: 마이그레이션 작성**
+- [x] **Step 1: 마이그레이션 작성**
 
 ```sql
 -- 프로필 속성 -> topic 가중치 초기값.
@@ -1464,7 +1502,7 @@ insert into profile_rules (attribute, value, topic, weight) values
 
 성별 규칙은 넣지 않는다 — 성별로 관심사를 가르는 건 근거가 약하고 오히려 편향을 만든다. `gender` 속성 자체는 스키마에 남겨 두되 규칙은 비워 둔다.
 
-- [ ] **Step 2: 적용 확인**
+- [x] **Step 2: 적용 확인**
 
 ```bash
 npx supabase db reset
@@ -1473,7 +1511,7 @@ docker exec -i $(docker ps --format '{{.Names}}' | grep supabase_db | head -1) p
 
 기대: `job_field` 17, `age_band` 8, `household` 6.
 
-- [ ] **Step 3: 커밋**
+- [x] **Step 3: 커밋**
 
 ```bash
 git add supabase/migrations/0002_seed_rules.sql
@@ -1487,7 +1525,7 @@ git commit -m "feat: 프로필 규칙 시드"
 **Files:**
 - Create: `supabase/migrations/0004_cron.sql`
 
-- [ ] **Step 1: 마이그레이션 작성**
+- [x] **Step 1: 마이그레이션 작성**
 
 시크릿을 SQL에 하드코딩하지 않고 Vault에서 읽는다.
 
@@ -1535,7 +1573,7 @@ select cron.schedule('deliver',           '0 * * * *',    $$select public.invoke
 
 KST 03:00 = UTC 18:00(전날), KST 04:00 = UTC 19:00(전날). 배달은 매시 정각에 돌며 함수 안에서 `push_hour`로 대상자를 거른다.
 
-- [ ] **Step 2: 로컬 적용 확인**
+- [x] **Step 2: 로컬 적용 확인**
 
 ```bash
 npx supabase db reset
@@ -1544,7 +1582,7 @@ docker exec -i $(docker ps --format '{{.Names}}' | grep supabase_db | head -1) p
 
 기대: 4건이 보인다. 로컬에는 Vault 시크릿이 없으므로 실제 호출은 실패하는 게 정상이다 — 등록 자체만 확인한다.
 
-- [ ] **Step 3: 커밋**
+- [x] **Step 3: 커밋**
 
 ```bash
 git add supabase/migrations/0004_cron.sql
@@ -1560,7 +1598,7 @@ git commit -m "feat: pg_cron 스케줄 4건 + Vault 기반 호출 헬퍼"
 - Modify: `changeLog.md`
 - Modify: `docs/superpowers/specs/2026-08-22-personal-briefing-design.md`
 
-- [ ] **Step 1: 전체 테스트 실행**
+- [x] **Step 1: 전체 테스트 실행**
 
 ```bash
 npm test
@@ -1568,7 +1606,7 @@ npm test
 
 기대: 35개 PASS, 0 FAIL.
 
-- [ ] **Step 2: 수집 → 요약 → 배달을 로컬에서 한 바퀴 돌린다**
+- [x] **Step 2: 수집 → 요약 → 배달을 로컬에서 한 바퀴 돌린다**
 
 `.env.local`에 `ANTHROPIC_API_KEY`를 넣고:
 
@@ -1599,7 +1637,7 @@ docker exec -i $(docker ps --format '{{.Names}}' | grep supabase_db | head -1) p
 
 기대: `n`이 1 이상. 이 숫자가 이 계획의 최종 성공 기준이다.
 
-- [ ] **Step 3: 설계 스펙에 변경점 5가지 반영**
+- [x] **Step 3: 설계 스펙에 변경점 5가지 반영**
 
 `docs/superpowers/specs/2026-08-22-personal-briefing-design.md`를 고친다:
 - 3절 아키텍처: 요약 잡을 `summarize-submit` / `summarize-collect` 2단계로 수정
@@ -1608,11 +1646,11 @@ docker exec -i $(docker ps --format '{{.Names}}' | grep supabase_db | head -1) p
 - 6절: "프롬프트 캐싱으로 추가 절감" 문장 삭제 (최소 프리픽스 미달로 캐시가 안 걸린다)
 - 9절: 요약 잡 테스트를 "LLM 목킹" → "응답 파서 단위 테스트 + 실제 한 바퀴 실행"으로 수정
 
-- [ ] **Step 4: plan.md 갱신**
+- [x] **Step 4: plan.md 갱신**
 
 Phase 2~5의 체크박스를 완료(`[x]`)로 바꾸고, Phase 6(프런트)을 🔜로 올린다.
 
-- [ ] **Step 5: changeLog.md 갱신**
+- [x] **Step 5: changeLog.md 갱신**
 
 맨 위에 항목을 추가한다:
 
@@ -1626,7 +1664,7 @@ Phase 2~5의 체크박스를 완료(`[x]`)로 바꾸고, Phase 6(프런트)을 �
 구현하며 스펙에서 바꾼 것 넷: 요약 잡 2단계 분할(Batch 비동기 + 함수 실행시간 제한), 점수 계산을 SQL에서 TS로(테스트 용이성), RLS 전면 차단(토스 로그인이 Supabase Auth가 아니라 userKey를 신뢰할 수 없다), 프롬프트 캐싱 제거(시스템 프롬프트가 최소 캐시 프리픽스에 못 미쳐 조용히 캐시되지 않는다).
 ```
 
-- [ ] **Step 6: 커밋과 PR**
+- [x] **Step 6: 커밋과 PR**
 
 한글 커밋 메시지는 인라인 `-m`이 CP949로 깨지므로 파일 경유로 넣는다.
 
