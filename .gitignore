@@ -5,3 +5,5 @@ dist/
 .env.local
 supabase/.temp/
 supabase/.branches/
+app/node_modules/
+app/dist/

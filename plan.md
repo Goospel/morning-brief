@@ -56,20 +56,27 @@
 - [x] `briefings` 확정 저장
 - [x] 매시 정각 크론 — `push_hour = 현재시 AND push_on`
 
-## Phase 6 · 프런트 🔜
+## Phase 6 · 프런트 ✅ (코드 완료 · 실기기 검증은 콘솔 등록 후)
 
 > 설계: [2026-08-23-frontend-design.md](docs/superpowers/specs/2026-08-23-frontend-design.md) ✅ · 구현 계획: [2026-08-23-frontend.md](docs/superpowers/plans/2026-08-23-frontend.md) ✅ (태스크 11개)
 >
 > mTLS 스파이크(설계 3절) 통과 — Edge Function 직결로 간다. 프록시 분리 불필요.
 
 - [x] mTLS 가부 실측 (T0) — 로컬 edge-runtime에서 200/400 대조 통과. 클라우드 재확인은 프로젝트 생성 후
-- [ ] `create-ait-app` 스캐폴딩 (Vite + React + TS + TDS) — `--tds --inline` 필요
-- [ ] 토스 로그인 연동, `userKey` → `profiles` 매핑
-- [ ] 온보딩 3문항 화면
-- [ ] 오늘의 브리핑 화면 (카드 = 제목·요약·출처·원문 링크, 원문은 외부 브라우저)
-- [ ] 설정 화면 (알림 시간·관심 주제·알림 끄기)
+- [x] `create-ait-app` 스캐폴딩 (Vite + React + TS + TDS) — `--tds --inline` 필요. 설정 파일은 `apps-in-toss.config.ts`
+- [x] 앱 전용 Edge Function `app` — 경로 라우팅 4개(login / briefing / me GET·PUT) + unlink 콜백
+- [x] 무상태 HMAC 세션 토큰 + 토스 개인정보 AES-256-GCM 복호화 (순수 함수, 테스트 71개)
+- [x] 토스 로그인 연동 코드, `userKey` → `profiles` 매핑 (`POST /app/login`)
+- [x] 온보딩 3문항 화면 — 선택지 어휘는 `_shared/topics.ts`를 프런트가 직접 import
+- [x] 오늘의 브리핑 화면 (카드 = 제목·요약·출처·원문 링크, 원문은 `Device.openURL` = 기기 기본 브라우저)
+- [x] 설정 화면 (알림 시간·관심 주제·알림 끄기)
+- [x] 프런트 빌드에 타입 검사 게이트 — `build`가 `tsc -b && vite build && ait build`
+- [ ] **콘솔 등록 후**: 실제 토스 로그인 흐름 검증(`TossAuth.login()` → `POST /app/login` → 세션 발급). 일반 브라우저에는 토스 SDK가 없어 로컬에서는 인트로가 뜨고 「시작하기」가 오류를 내는 것까지만 확인 가능
+- [ ] **콘솔 등록 후**: 실기기(샌드박스) 확인 — 내비게이션 바 뒤로가기 ↔ history 연동, 웰컴 브리핑, `Device.openURL` 실동작, 재진입 시 세션 유지
+- [ ] **콘솔 등록 후**: unlink 콜백의 실제 인증 방식 확인 → 현재의 임시 공유 시크릿(`UNLINK_CALLBACK_SECRET`) 검증을 교체. 확정 전까지는 fail-closed(503/401)
+- [ ] **키 수령 후**: 복호화 키·AAD·`birthday` 포맷 확정 — 현 구현은 GCM 태그가 암호문 뒤에 붙는 표준 배치를 가정
 
-## Phase 7 · 푸시 ⬜
+## Phase 7 · 푸시 🔜
 
 - [ ] mTLS 인증서 발급·보관
 - [ ] 고정 문구 템플릿 1개 사전 검수 신청
