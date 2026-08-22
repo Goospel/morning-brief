@@ -273,7 +273,7 @@ git commit -m "feat: 스키마 마이그레이션 (6테이블 + RLS 전면 차�
 - Create: `supabase/functions/_shared/kst.ts`
 - Test: `test/kst.test.ts`
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 ```typescript
 import { test } from 'node:test';
@@ -301,7 +301,7 @@ test('kstDateString: UTC 14시는 KST 기준 같은 날짜', () => {
 });
 ```
 
-- [ ] **Step 2: 테스트 실행해 실패 확인**
+- [x] **Step 2: 테스트 실행해 실패 확인**
 
 ```bash
 npm test
@@ -309,7 +309,7 @@ npm test
 
 기대: 모듈을 찾을 수 없다는 에러로 FAIL.
 
-- [ ] **Step 3: 구현**
+- [x] **Step 3: 구현**
 
 ```typescript
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
@@ -327,7 +327,7 @@ export function kstDateString(now: Date): string {
 
 한국은 서머타임이 없어 고정 +9 오프셋이 항상 맞다. `Intl`을 쓸 이유가 없다.
 
-- [ ] **Step 4: 테스트 실행해 통과 확인**
+- [x] **Step 4: 테스트 실행해 통과 확인**
 
 ```bash
 npm test
@@ -335,7 +335,7 @@ npm test
 
 기대: 5개 PASS.
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add supabase/functions/_shared/kst.ts test/kst.test.ts
@@ -351,7 +351,7 @@ git commit -m "feat: KST 시각 변환 헬퍼"
 - Test: `test/rss.test.ts`
 - Create: `test/fixtures/rss.xml`, `test/fixtures/atom.xml`, `test/fixtures/single-item.xml`
 
-- [ ] **Step 1: 픽스처 3개 작성**
+- [x] **Step 1: 픽스처 3개 작성**
 
 `test/fixtures/rss.xml`:
 
@@ -419,7 +419,7 @@ git commit -m "feat: KST 시각 변환 헬퍼"
 </rss>
 ```
 
-- [ ] **Step 2: 실패하는 테스트 작성**
+- [x] **Step 2: 실패하는 테스트 작성**
 
 ```typescript
 import { test } from 'node:test';
@@ -475,7 +475,7 @@ test('빈 문자열도 예외를 던진다', () => {
 });
 ```
 
-- [ ] **Step 3: 테스트 실행해 실패 확인**
+- [x] **Step 3: 테스트 실행해 실패 확인**
 
 ```bash
 npm test
@@ -483,7 +483,7 @@ npm test
 
 기대: `parseFeed`를 찾을 수 없다는 에러로 FAIL.
 
-- [ ] **Step 4: 구현**
+- [x] **Step 4: 구현**
 
 ```typescript
 import { XMLParser, XMLValidator } from 'fast-xml-parser';
@@ -562,7 +562,7 @@ export function parseFeed(xml: string): FeedItem[] {
 }
 ```
 
-- [ ] **Step 5: 테스트 실행해 통과 확인**
+- [x] **Step 5: 테스트 실행해 통과 확인**
 
 ```bash
 npm test
@@ -570,7 +570,7 @@ npm test
 
 기대: 13개 PASS (kst 5 + rss 8).
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git add supabase/functions/_shared/rss.ts test/rss.test.ts test/fixtures
@@ -588,7 +588,7 @@ Claude가 JSON을 돌려주지만 신뢰하지 않는다. 파싱 실패나 어�
 - Create: `supabase/functions/_shared/summary.ts`
 - Test: `test/summary.test.ts`
 
-- [ ] **Step 1: 고정 어휘 상수 작성**
+- [x] **Step 1: 고정 어휘 상수 작성**
 
 ```typescript
 export const TOPICS = [
@@ -604,7 +604,7 @@ export function isTopic(v: string): v is Topic {
 }
 ```
 
-- [ ] **Step 2: 실패하는 테스트 작성**
+- [x] **Step 2: 실패하는 테스트 작성**
 
 ```typescript
 import { test } from 'node:test';
@@ -648,7 +648,7 @@ test('topics 가 배열이 아니면 null 을 준다', () => {
 });
 ```
 
-- [ ] **Step 3: 테스트 실행해 실패 확인**
+- [x] **Step 3: 테스트 실행해 실패 확인**
 
 ```bash
 npm test
@@ -656,7 +656,7 @@ npm test
 
 기대: `parseSummary`를 찾을 수 없다는 에러로 FAIL.
 
-- [ ] **Step 4: 구현**
+- [x] **Step 4: 구현**
 
 ```typescript
 import { isTopic, type Topic } from './topics.ts';
@@ -700,7 +700,7 @@ export function parseSummary(raw: string): Summary | null {
 }
 ```
 
-- [ ] **Step 5: 테스트 실행해 통과 확인**
+- [x] **Step 5: 테스트 실행해 통과 확인**
 
 ```bash
 npm test
@@ -708,7 +708,7 @@ npm test
 
 기대: 21개 PASS.
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git add supabase/functions/_shared/topics.ts supabase/functions/_shared/summary.ts test/summary.test.ts
@@ -725,7 +725,7 @@ git commit -m "feat: 고정 어휘 + 요약 응답 파서"
 - Create: `supabase/functions/_shared/scoring.ts`
 - Test: `test/scoring.test.ts`
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 ```typescript
 import { test } from 'node:test';
@@ -853,7 +853,7 @@ test('selectBriefing: 동점이면 id 순으로 결정론적이다', () => {
 });
 ```
 
-- [ ] **Step 2: 테스트 실행해 실패 확인**
+- [x] **Step 2: 테스트 실행해 실패 확인**
 
 ```bash
 npm test
@@ -861,7 +861,7 @@ npm test
 
 기대: `scoring.ts`를 찾을 수 없다는 에러로 FAIL.
 
-- [ ] **Step 3: 구현**
+- [x] **Step 3: 구현**
 
 ```typescript
 export type Profile = {
@@ -970,7 +970,7 @@ export function selectBriefing(
 }
 ```
 
-- [ ] **Step 4: 테스트 실행해 통과 확인**
+- [x] **Step 4: 테스트 실행해 통과 확인**
 
 ```bash
 npm test
@@ -978,7 +978,7 @@ npm test
 
 기대: 35개 PASS.
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add supabase/functions/_shared/scoring.ts test/scoring.test.ts
