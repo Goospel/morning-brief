@@ -210,11 +210,24 @@ async function createWelcomeBriefing(userKey: string): Promise<void> {
  *    콘솔에서 콜백을 등록할 때 서명 방식을 확인해 여기에 검증을 붙인다.
  */
 async function handleUnlink(req: Request): Promise<Response> {
+  // fail-closed: 토스 콜백의 인증 방식이 아직 미확인이라, 공유 시크릿을 설정하기
+  // 전까지 이 경로를 아예 닫아 둔다. 열어 둔 채로 두면 userKey 하나만 알면
+  // 누구나 남의 데이터를 지울 수 있는 공개 삭제 경로가 된다.
+  // 콘솔에서 콜백을 등록할 때 실제 인증 방식(서명 헤더/mTLS)을 확인해 교체한다.
+  const secret = Deno.env.get('UNLINK_CALLBACK_SECRET');
+  if (!secret) {
+    console.error('unlink callback 이 설정되지 않아 거부했다 (UNLINK_CALLBACK_SECRET 미설정)');
+    return json({ error: 'not configured' }, 503);
+  }
+  if (req.headers.get('x-unlink-secret') !== secret) {
+    return json({ error: 'unauthorized' }, 401);
+  }
+
   const raw = await req.text();
   console.log('unlink callback payload:', raw.slice(0, 500));
 
   let body: { userKey?: string } | null = null;
-  try { body = JSON.parse(raw); } catch { /* 형식 미확인이라 파싱 실패도 200 으로 받는다 */ }
+  try { body = JSON.parse(raw); } catch { /* 페이로드 형식이 미확인이라 파싱 실패는 조용히 넘긴다 */ }
   if (!body?.userKey) return json({ ok: true });
 
   const client = db();
