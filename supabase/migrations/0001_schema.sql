@@ -79,3 +79,9 @@ alter table articles        enable row level security;
 alter table summary_batches enable row level security;
 alter table briefings       enable row level security;
 alter table profile_rules   enable row level security;
+
+-- RLS 로 anon/authenticated 는 이미 막혀 있다. 실제로 접근하는 것은 service_role 뿐인데,
+-- 최근 Supabase CLI 는 신규 테이블을 Data API 롤에 자동 노출하지 않는다.
+-- 이 GRANT 가 없으면 Edge Function 이 permission denied (42501) 로 전부 죽는다.
+grant select, insert, update, delete on all tables in schema public to service_role;
+grant usage, select on all sequences in schema public to service_role;
