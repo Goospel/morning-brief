@@ -13,7 +13,7 @@ test('코드펜스로 감싼 JSON 도 파싱한다', () => {
 });
 
 test('어휘 밖 태그는 버린다', () => {
-  const r = parseSummary('{"summary":"요약","topics":["tech","sports","ai"]}');
+  const r = parseSummary('{"summary":"요약","topics":["tech","weather","ai"]}');
   assert.deepEqual(r?.topics, ['tech', 'ai']);
 });
 
@@ -31,7 +31,7 @@ test('summary 가 비면 null 을 준다', () => {
 });
 
 test('topics 가 전부 어휘 밖이면 null 을 준다', () => {
-  assert.equal(parseSummary('{"summary":"요약","topics":["sports"]}'), null);
+  assert.equal(parseSummary('{"summary":"요약","topics":["gossip"]}'), null);
 });
 
 test('topics 가 배열이 아니면 null 을 준다', () => {

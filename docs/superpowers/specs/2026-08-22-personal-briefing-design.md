@@ -136,7 +136,9 @@ grant usage, select on all sequences in schema public to service_role;
 
 `sources.topics` · `articles.topics` · `profile_rules.topic` · `profiles.topics`가 **같은 어휘를 공유**해야 매칭이 성립한다. 요약 잡의 태그 프롬프트도 이 목록만 쓰도록 제한한다.
 
-- **topic** (12개): `economy` 경제 · `finance` 재테크·투자 · `realestate` 부동산 · `policy` 정책·제도 · `tech` 기술 · `ai` AI · `career` 커리어·일 · `health` 건강 · `parenting` 육아·교육 · `living` 생활·소비 · `culture` 문화·여가 · `world` 국제
+- **topic** (13개): `economy` 경제 · `finance` 재테크·투자 · `realestate` 부동산 · `policy` 정책·제도 · `tech` 기술 · `ai` AI · `career` 커리어·일 · `health` 건강 · `parenting` 육아·교육 · `living` 생활·소비 · `culture` 문화·여가 · `sports` 스포츠 · `world` 국제
+
+  `sports`는 `profile_rules` 시드에 넣지 않는다 — 호불호가 갈려 나이·직업으로 미는 것이 맞지 않고, 온보딩에서 직접 고른 사람에게만 간다.
 
 - **job_field** (8개): `it` · `finance` · `medical` · `edu` · `public` · `manufacturing` · `service` · `etc`
 
@@ -170,6 +172,7 @@ score(article, profile) =
 - **제출(`summarize-submit`)과 수거(`summarize-collect`)를 나눈다.** 제출 잡이 `batch_id`를 `summary_batches`에 남기고, 수거 잡이 20분마다 완료된 배치를 반영한다.
 - **Batch 결과는 순서가 보장되지 않는다** — 반드시 `custom_id`(= `articles.id`)로 짝을 짓는다. 배열 인덱스로 맞추면 조용히 엉뚱한 기사에 요약이 붙는다.
 - 프롬프트 캐싱은 쓰지 않는다. 캐시가 걸리는 최소 프리픽스는 약 1,024토큰인데 요약 시스템 프롬프트는 그보다 훨씬 짧다 — **짧은 프리픽스는 조용히 캐시되지 않으므로** `cache_control`을 붙여도 착시만 남는다. Batch의 50% 할인은 그대로 적용된다.
+- **정확도 가드를 시스템 프롬프트에 두다** — 발언 주체·찬반 입장·인과는 원문에 명시된 대로만 쓰고, 제목에 서로 다른 주체의 발언이 나란히 나오면 원문 표기를 그대로 쓴다(「與」를 「여당」·「야당」으로 해석하지 않는다). 발췌이 짧아 입장이 제목에만 있을 때 모델이 여야를 바꿔 달았다([T-004](../../../claude-docs/troubleshooting/T-004.md)).
 - 입력: 제목 + `raw_excerpt` + 출처명. 출력: 한글 요약 3~5줄 + 토픽 태그 배열.
 - 영문 기사는 요약 단계에서 한글로 번역된다 — 별도 번역 단계를 두지 않는다.
 - 실패한 건은 `summary_ko`가 NULL로 남아 다음 날 잡이 자동 재시도한다. 별도 재시도 큐를 만들지 않는다.

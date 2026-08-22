@@ -1,7 +1,8 @@
 export const TOPICS = [
   'economy', 'finance', 'realestate', 'policy',
   'tech', 'ai', 'career', 'health',
-  'parenting', 'living', 'culture', 'world',
+  'parenting', 'living', 'culture', 'sports',
+  'world',
 ] as const;
 
 export type Topic = (typeof TOPICS)[number];
