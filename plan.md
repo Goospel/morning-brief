@@ -58,7 +58,12 @@
 
 ## Phase 6 · 프런트 🔜
 
-- [ ] `create-ait-app` 스캐폴딩 (Vite + React + TS + TDS)
+> 설계: [2026-08-23-frontend-design.md](docs/superpowers/specs/2026-08-23-frontend-design.md) ✅ · 구현 계획: [2026-08-23-frontend.md](docs/superpowers/plans/2026-08-23-frontend.md) ✅ (태스크 11개)
+>
+> mTLS 스파이크(설계 3절) 통과 — Edge Function 직결로 간다. 프록시 분리 불필요.
+
+- [x] mTLS 가부 실측 (T0) — 로컬 edge-runtime에서 200/400 대조 통과. 클라우드 재확인은 프로젝트 생성 후
+- [ ] `create-ait-app` 스캐폴딩 (Vite + React + TS + TDS) — `--tds --inline` 필요
 - [ ] 토스 로그인 연동, `userKey` → `profiles` 매핑
 - [ ] 온보딩 3문항 화면
 - [ ] 오늘의 브리핑 화면 (카드 = 제목·요약·출처·원문 링크, 원문은 외부 브라우저)
