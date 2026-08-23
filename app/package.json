@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
+    "dev:mock": "vite dev --mode mock",
     "build": "tsc -b && vite build && ait build",
     "lint": "eslint .",
     "format": "prettier --write .",

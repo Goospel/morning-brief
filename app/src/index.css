@@ -1,14 +1,10 @@
-:root {
-  font-family: sans-serif;
-}
-
+/* 폰트·리셋은 TDSMobileProvider 가 body 에 주입한다 — 여기서 :root font-family 를 잡으면 그쪽을 이긴다. */
 * {
   -webkit-tap-highlight-color: transparent;
 }
 
 body {
   margin: 0;
-  min-width: 320px;
   min-height: 100vh;
 }
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Loader } from '@toss/tds-mobile';
 import { Intro } from './screens/Intro';
 import { Onboarding } from './screens/Onboarding';
 import { Briefing } from './screens/Briefing';
@@ -30,7 +31,13 @@ export default function App() {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
-  if (screen === 'loading') return <main style={{ padding: '24px' }}><p>불러오는 중…</p></main>;
+  if (screen === 'loading') {
+    return (
+      <main style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <Loader />
+      </main>
+    );
+  }
 
   if (screen === 'intro') {
     return <Intro onDone={(onboarded) => setScreen(onboarded ? 'briefing' : 'onboarding')} />;
@@ -40,7 +47,8 @@ export default function App() {
     return <Onboarding onDone={() => { history.replaceState(null, '', '/'); setScreen('briefing'); }} />;
   }
   if (screen === 'settings') {
-    return <Settings onBack={() => history.back()} />;
+    // 뒤로가기는 토스 네이티브 내비게이션 바가 제공한다 (popstate → briefing 복귀)
+    return <Settings />;
   }
   return <Briefing onSettings={() => { history.pushState(null, '', '/settings'); setScreen('settings'); }} />;
 }

@@ -1,70 +1,99 @@
 import { useState } from 'react';
-import { TOPICS, JOB_FIELDS, HOUSEHOLDS } from '@shared/topics.ts';
-import { TOPIC_LABELS, JOB_FIELD_LABELS, HOUSEHOLD_LABELS } from '../labels';
+import { Chip, ChipItem, FixedBottomCTA, ListHeader, Top, useToast } from '@toss/tds-mobile';
+import { adaptive } from '@toss/tds-colors';
+import { JOB_FIELDS, HOUSEHOLDS } from '@shared/topics.ts';
+import { JOB_FIELD_LABELS, HOUSEHOLD_LABELS } from '../labels';
+import { TopicChips } from '../components/TopicChips';
 import { putMe } from '../api';
+
+/** 하나만 고르는 칩 묶음. */
+function SingleChips({
+  options,
+  labels,
+  value,
+  onChange,
+}: {
+  options: readonly string[];
+  labels: Record<string, string>;
+  value: string | null;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <Chip wrap margin="none">
+      {options.map((o) => (
+        <ChipItem key={o} selected={value === o} onClick={() => onChange(o)}>
+          {labels[o]}
+        </ChipItem>
+      ))}
+    </Chip>
+  );
+}
 
 export function Onboarding({ onDone }: { onDone: () => void }) {
   const [jobField, setJobField] = useState<string | null>(null);
   const [household, setHousehold] = useState<string | null>(null);
   const [topics, setTopics] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { openToast } = useToast();
 
   const ready = jobField !== null && household !== null && topics.length > 0;
-
-  function toggleTopic(t: string) {
-    setTopics((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
-  }
 
   async function submit() {
     if (!ready) return;
     setBusy(true);
-    setError(null);
     try {
       await putMe({ jobField: jobField!, household: household!, topics });
       onDone();
     } catch {
-      setError('저장하지 못했어요. 다시 시도해 주세요.');
+      openToast('저장하지 못했어요. 다시 시도해 주세요.');
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <main style={{ padding: '24px' }}>
-      <h1>어떤 소식이 필요하세요?</h1>
+    <main style={{ paddingBottom: 120 }}>
+      <Top
+        title={<Top.TitleParagraph>어떤 소식이 필요하세요?</Top.TitleParagraph>}
+        subtitleBottom={
+          <Top.SubtitleParagraph color={adaptive.grey600}>
+            맞는 소식만 골라서 배달해 드릴게요
+          </Top.SubtitleParagraph>
+        }
+      />
 
-      <section>
-        <h2>하시는 일</h2>
-        {JOB_FIELDS.map((f) => (
-          <button key={f} aria-pressed={jobField === f} onClick={() => setJobField(f)}>
-            {JOB_FIELD_LABELS[f]}
-          </button>
-        ))}
-      </section>
+      <ListHeader title={<ListHeader.TitleParagraph>하시는 일</ListHeader.TitleParagraph>} />
+      <div style={{ padding: '0 24px' }}>
+        <SingleChips
+          options={JOB_FIELDS}
+          labels={JOB_FIELD_LABELS}
+          value={jobField}
+          onChange={setJobField}
+        />
+      </div>
 
-      <section>
-        <h2>가구 형태</h2>
-        {HOUSEHOLDS.map((h) => (
-          <button key={h} aria-pressed={household === h} onClick={() => setHousehold(h)}>
-            {HOUSEHOLD_LABELS[h]}
-          </button>
-        ))}
-      </section>
+      <ListHeader title={<ListHeader.TitleParagraph>가구 형태</ListHeader.TitleParagraph>} />
+      <div style={{ padding: '0 24px' }}>
+        <SingleChips
+          options={HOUSEHOLDS}
+          labels={HOUSEHOLD_LABELS}
+          value={household}
+          onChange={setHousehold}
+        />
+      </div>
 
-      <section>
-        <h2>관심 주제 (하나 이상)</h2>
-        {TOPICS.map((t) => (
-          <button key={t} aria-pressed={topics.includes(t)} onClick={() => toggleTopic(t)}>
-            {TOPIC_LABELS[t]}
-          </button>
-        ))}
-      </section>
+      <ListHeader
+        title={<ListHeader.TitleParagraph>관심 주제</ListHeader.TitleParagraph>}
+        description={<ListHeader.DescriptionParagraph>하나 이상 골라주세요</ListHeader.DescriptionParagraph>}
+        descriptionPosition="bottom"
+      />
+      <div style={{ padding: '0 24px' }}>
+        <TopicChips value={topics} onChange={setTopics} />
+      </div>
 
-      {error && <p role="alert">{error}</p>}
-      <button onClick={submit} disabled={!ready || busy}>
-        {busy ? '저장 중…' : '시작하기'}
-      </button>
+      <FixedBottomCTA disabled={!ready} loading={busy} onClick={() => void submit()}>
+        시작하기
+      </FixedBottomCTA>
     </main>
   );
 }
