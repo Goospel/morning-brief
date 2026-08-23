@@ -5,9 +5,9 @@ import { login } from '../api';
 import logoUrl from '../assets/logo.png';
 
 const VALUES = [
-  { emoji: '🥛', text: '나이·직업·관심사에 맞춘 기사 5~6건' },
-  { emoji: '🌏', text: '해외 매체도 한국어 요약으로 배달돼요' },
-  { emoji: '✅', text: '다 보면 끝나는 하루치 묶음이에요' },
+  { icon: 'icon-user-mono', bg: adaptive.blue50, fg: adaptive.blue500, text: '나이·직업·관심사에 맞춘 기사 5~6건' },
+  { icon: 'icon-earth-mono', bg: adaptive.teal50, fg: adaptive.teal500, text: '해외 매체도 한국어 요약으로 배달돼요' },
+  { icon: 'icon-check-circle-mono', bg: adaptive.orange50, fg: adaptive.orange500, text: '다 보면 끝나는 하루치 묶음이에요' },
 ];
 
 export function Intro({ onDone }: { onDone: (onboarded: boolean) => void }) {
@@ -48,11 +48,11 @@ export function Intro({ onDone }: { onDone: (onboarded: boolean) => void }) {
         <List style={{ width: '100%' }}>
           {VALUES.map((v) => (
             <ListRow
-              key={v.emoji}
+              key={v.icon}
               border="none"
               verticalPadding="small"
               horizontalPadding="small"
-              left={<Paragraph typography="t4">{v.emoji}</Paragraph>}
+              left={<ListRow.AssetIcon variant="fill" size="medium" name={v.icon} backgroundColor={v.bg} color={v.fg} />}
               contents={<ListRow.Texts type="1RowTypeA" top={v.text} />}
             />
           ))}

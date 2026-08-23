@@ -49,3 +49,39 @@ test('깨진 XML 은 예외를 던진다', () => {
 test('빈 문자열도 예외를 던진다', () => {
   assert.throws(() => parseFeed(''), /invalid XML/);
 });
+
+test('media:thumbnail 의 url 을 쓴다', () => {
+  const items = parseFeed(fixture('rss-images.xml'));
+  assert.equal(items[0].imageUrl, 'https://ichef.bbci.co.uk/news/240/thumb.jpg');
+});
+
+test('media:thumbnail 이 없으면 이미지 타입 media:content 를 쓴다', () => {
+  const items = parseFeed(fixture('rss-images.xml'));
+  assert.equal(items[1].imageUrl, 'https://cdn.arstechnica.net/a.png');
+});
+
+test('media:content 가 오디오면 이미지로 쓰지 않는다', () => {
+  const items = parseFeed(fixture('rss-images.xml'));
+  assert.equal(items[2].imageUrl, null);
+});
+
+test('본문 HTML 의 첫 img 를 항목 링크 기준으로 절대화한다', () => {
+  const items = parseFeed(fixture('rss-images.xml'));
+  assert.equal(items[3].imageUrl, 'https://www.zdnet.co.kr/images/2026/08/21/a.jpg');
+});
+
+test('data: URI 이미지는 버린다', () => {
+  const items = parseFeed(fixture('rss-images.xml'));
+  assert.equal(items[4].imageUrl, null);
+});
+
+test('이미지가 아무 데도 없으면 null 이다', () => {
+  const items = parseFeed(fixture('rss-images.xml'));
+  assert.equal(items[5].imageUrl, null);
+});
+
+test('Atom 도 content 원문의 img 를 뽑는다', () => {
+  const items = parseFeed(fixture('atom-image.xml'));
+  assert.equal(items[0].imageUrl, 'https://example.org/img/atom1.png');
+  assert.equal(items[1].imageUrl, null);
+});

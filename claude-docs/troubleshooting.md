@@ -22,6 +22,8 @@
      각 항목의 frontmatter(summary)에서 재생성합니다. 내용을 바꾸려면 그 항목의
      summary를 고치세요(단일 출처). 최신 항목이 위. -->
 
+- [T-007](troubleshooting/T-007.md) · 한국경제 피드는 브라우저형 UA 에 Cloudflare 챌린지 HTML 을 준다 — 피드는 수집용 UA, 원문 페이지는 브라우저형 UA 로 갈라 써야 한다
+- [T-006](troubleshooting/T-006.md) · TDS Asset.Icon 은 style prop 을 프레임에 전달하지 않는다 — 크기 지정이 조용히 무시돼 전부 기본 24px 로 렌더된다
 - [T-005](troubleshooting/T-005.md) · TDS Selector의 화살표가 좁은 폭에서 텍스트 아래로 떨어졌다 — 컴포넌트 버그가 아니라 부모가 준 폭이 4px 모자랐던 것
 - [T-004](troubleshooting/T-004.md) · 요약이 정치 기사의 발언 주체를 여↔야로 뒤집었는데 테스트 37개는 전부 초록불이었다 — 형식 계측기는 내용의 참거짓을 보지 않는다
 - [T-003](troubleshooting/T-003.md) · 피드 검증기가 원시 태그 개수만 세는 바람에 파싱 0건인 소스를 통과시켰다 — 대리 지표 판정은 통과 쪽으로 조용히 고장 난다

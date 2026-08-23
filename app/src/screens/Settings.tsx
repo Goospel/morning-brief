@@ -11,6 +11,7 @@ import {
   useBottomSheet,
   useToast,
 } from '@toss/tds-mobile';
+import { adaptive } from '@toss/tds-colors';
 import { TopicChips } from '../components/TopicChips';
 import { getMe, putMe, type Me, type MePatch } from '../api';
 
@@ -69,6 +70,7 @@ export function Settings() {
       <List>
         <ListRow
           border="none"
+          left={<ListRow.AssetIcon name="icon-alarm-mono" color={adaptive.grey600} />}
           contents={<ListRow.Texts type="1RowTypeA" top="매일 아침 알림 받기" />}
           right={<Switch checked={me.pushOn} onChange={(_, checked) => void patch({ pushOn: checked })} />}
         />
@@ -77,6 +79,7 @@ export function Settings() {
           border="none"
           withTouchEffect
           onClick={openHourSheet}
+          left={<ListRow.AssetIcon name="icon-clock-mono" color={adaptive.grey600} />}
           contents={<ListRow.Texts type="1RowTypeA" top="받을 시간" />}
           right={<Selector typography="t5" type="arrow" style={{ whiteSpace: 'nowrap' }}>{`${me.pushHour}시`}</Selector>}
         />
