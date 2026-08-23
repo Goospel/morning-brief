@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Atom Image Feed</title>
+  <entry>
+    <title>본문에 이미지가 있는 글</title>
+    <link rel="alternate" href="https://example.org/atom/1"/>
+    <published>2026-08-21T01:00:00Z</published>
+    <content type="html">&lt;p&gt;도입&lt;/p&gt;&lt;img src="https://example.org/img/atom1.png"&gt;</content>
+  </entry>
+  <entry>
+    <title>이미지가 없는 글</title>
+    <link rel="alternate" href="https://example.org/atom/2"/>
+    <published>2026-08-20T01:00:00Z</published>
+    <summary>텍스트만 있는 요약</summary>
+  </entry>
+</feed>

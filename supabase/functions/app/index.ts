@@ -103,7 +103,7 @@ async function handleBriefing(userKey: string): Promise<Response> {
 
   const { data: rows } = await client
     .from('articles')
-    .select('id,title,url,summary_ko,published_at,sources(name)')
+    .select('id,title,url,summary_ko,published_at,topics,image_url,sources(name)')
     .in('id', briefing.article_ids);
 
   // .in() 은 순서를 보장하지 않는다 — 브리핑에 담긴 순서(점수순)를 복원한다
@@ -118,6 +118,8 @@ async function handleBriefing(userKey: string): Promise<Response> {
       sourceName: (r.sources as { name?: string } | null)?.name ?? '',
       url: r.url,
       publishedAt: r.published_at,
+      topics: r.topics ?? [],
+      imageUrl: r.image_url ?? null,
     }));
 
   if (!briefing.opened_at) {

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Image Feed</title>
+    <item>
+      <title>media:thumbnail 우선</title>
+      <link>https://example.com/thumb</link>
+      <pubDate>Fri, 21 Aug 2026 10:00:00 +0900</pubDate>
+      <description>설명</description>
+      <media:thumbnail width="240" height="135" url="https://ichef.bbci.co.uk/news/240/thumb.jpg"/>
+      <media:content url="https://example.com/later.jpg" type="image/jpeg"/>
+    </item>
+    <item>
+      <title>media:content 이미지</title>
+      <link>https://example.com/mc</link>
+      <pubDate>Fri, 21 Aug 2026 10:00:00 +0900</pubDate>
+      <media:content url="https://cdn.arstechnica.net/a.png" type="image/png"/>
+    </item>
+    <item>
+      <title>media:content 오디오</title>
+      <link>https://example.com/audio</link>
+      <pubDate>Fri, 21 Aug 2026 10:00:00 +0900</pubDate>
+      <media:content url="https://example.com/ep1.mp3" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>본문 이미지 상대경로</title>
+      <link>https://www.zdnet.co.kr/view/?no=20260821</link>
+      <pubDate>Fri, 21 Aug 2026 10:00:00 +0900</pubDate>
+      <description>&lt;p&gt;본문&lt;/p&gt;&lt;img src="/images/2026/08/21/a.jpg" alt=""&gt;</description>
+    </item>
+    <item>
+      <title>data URI 는 버린다</title>
+      <link>https://example.com/data</link>
+      <pubDate>Fri, 21 Aug 2026 10:00:00 +0900</pubDate>
+      <description>&lt;img src="data:image/gif;base64,R0lGODlhAQABAA=="&gt;</description>
+    </item>
+    <item>
+      <title>이미지 없음</title>
+      <link>https://example.com/none</link>
+      <pubDate>Fri, 21 Aug 2026 10:00:00 +0900</pubDate>
+      <description>그냥 텍스트</description>
+    </item>
+  </channel>
+</rss>
