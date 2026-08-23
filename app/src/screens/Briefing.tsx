@@ -78,7 +78,13 @@ export function Briefing({ onSettings }: { onSettings: () => void }) {
             {cards ? `${formatDate(data.date)} · 기사 ${cards.length}건` : '아직 배달 전이에요'}
           </Top.SubtitleParagraph>
         }
-        right={<TextButton size="medium" onClick={onSettings}>설정</TextButton>}
+        right={
+          // Top 의 right 슬롯은 자체 오른쪽 여백이 없다(실측: 타이틀 left 24px 대 rightGap 0px).
+          // 왼쪽 타이틀과 대칭이 되도록 24px 을 준다.
+          <div style={{ paddingRight: 24 }}>
+            <TextButton size="medium" onClick={onSettings}>설정</TextButton>
+          </div>
+        }
       />
 
       {offline && <Banner>오프라인이에요. 마지막으로 받은 브리핑을 보여드려요</Banner>}
