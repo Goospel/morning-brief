@@ -56,9 +56,9 @@
 - [x] `briefings` 확정 저장
 - [x] 매시 정각 크론 — `push_hour = 현재시 AND push_on`
 
-## Phase 6 · 프런트 ✅ (코드 완료 · 실기기 검증은 콘솔 등록 후)
+## Phase 6 · 프런트 ✅ (코드·디자인 완료 · 실기기 검증은 콘솔 등록 후)
 
-> 설계: [2026-08-23-frontend-design.md](docs/superpowers/specs/2026-08-23-frontend-design.md) ✅ · 구현 계획: [2026-08-23-frontend.md](docs/superpowers/plans/2026-08-23-frontend.md) ✅ (태스크 11개)
+> 설계: [2026-08-23-frontend-design.md](docs/superpowers/specs/2026-08-23-frontend-design.md) ✅ (화면 흐름·API) · [2026-08-23-screen-design.md](docs/superpowers/specs/2026-08-23-screen-design.md) ✅ (TDS 디자인·스크린샷) · 구현 계획: [2026-08-23-frontend.md](docs/superpowers/plans/2026-08-23-frontend.md) ✅ (태스크 11개)
 >
 > mTLS 스파이크(설계 3절) 통과 — Edge Function 직결로 간다. 프록시 분리 불필요.
 
@@ -71,8 +71,12 @@
 - [x] 오늘의 브리핑 화면 (카드 = 제목·요약·출처·원문 링크, 원문은 `Device.openURL` = 기기 기본 브라우저)
 - [x] 설정 화면 (알림 시간·관심 주제·알림 끄기)
 - [x] 프런트 빌드에 타입 검사 게이트 — `build`가 `tsc -b && vite build && ait build`
+- [x] 4개 화면 TDS 디자인 — Top/ListRow/Chip/Switch/BottomSheet/FixedBottomCTA 등 실측 확인한 컴포넌트만 사용, 색은 `adaptive.*`(다크모드 자동)
+- [x] 브랜드 색을 로고에 맞춤 — `brand.primaryColor` `#3182F6`(토스 기본) → `#3E7BD1`
+- [x] 목 데이터 경로 — `vite dev --mode mock` + `api.ts` 게이트. 로그인 없이 4개 화면 실측 가능. prod 번들 미포함을 grep으로 확인
+- [x] 심사 제출용 세로 스크린샷 3장 (636×1048) — `store-assets/screenshots/`
 - [ ] **콘솔 등록 후**: 실제 토스 로그인 흐름 검증(`TossAuth.login()` → `POST /app/login` → 세션 발급). 일반 브라우저에는 토스 SDK가 없어 로컬에서는 인트로가 뜨고 「시작하기」가 오류를 내는 것까지만 확인 가능
-- [ ] **콘솔 등록 후**: 실기기(샌드박스) 확인 — 내비게이션 바 뒤로가기 ↔ history 연동, 웰컴 브리핑, `Device.openURL` 실동작, 재진입 시 세션 유지
+- [ ] **콘솔 등록 후**: 실기기(샌드박스) 확인 — 내비게이션 바 뒤로가기 ↔ history 연동(설정 화면의 자체 「뒤로」 버튼을 지웠으므로 네이티브 바가 유일한 복귀 경로다), 웰컴 브리핑, `Device.openURL` 실동작, 재진입 시 세션 유지
 - [ ] **콘솔 등록 후**: unlink 콜백의 실제 인증 방식 확인 → 현재의 임시 공유 시크릿(`UNLINK_CALLBACK_SECRET`) 검증을 교체. 확정 전까지는 fail-closed(503/401)
 - [ ] **키 수령 후**: 복호화 키·AAD·`birthday` 포맷 확정 — 현 구현은 GCM 태그가 암호문 뒤에 붙는 표준 배치를 가정
 

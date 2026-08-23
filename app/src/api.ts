@@ -1,6 +1,10 @@
 import { Storage, TossAuth } from '@apps-in-toss/web-framework';
+import * as mock from './mock';
 
 const BASE = import.meta.env.VITE_API_BASE as string;
+
+/** `vite dev --mode mock` 일 때만 true. prod 빌드에서는 상수 false 로 접혀 mock.ts 가 번들에서 빠진다. */
+const MOCK = import.meta.env.VITE_MOCK === '1';
 
 export type Card = {
   articleId: number; title: string; summaryKo: string;
@@ -17,12 +21,17 @@ export type Me = {
   pushHour: number; pushOn: boolean;
 };
 
+export type MePatch = {
+  jobField?: string; household?: string; topics?: string[];
+  pushHour?: number; pushOn?: boolean;
+};
+
 async function getSession(): Promise<string | null> {
   return (await Storage.getItem('session')) ?? null;
 }
 
 /** 로그인해서 세션을 저장한다. onboarded 를 돌려준다. */
-export async function login(): Promise<{ onboarded: boolean }> {
+async function realLogin(): Promise<{ onboarded: boolean }> {
   const { authorizationCode, referrer } = await TossAuth.login();
   const res = await fetch(`${BASE}/login`, {
     method: 'POST',
@@ -51,29 +60,34 @@ async function call<T>(path: string, init: RequestInit = {}, retried = false): P
   });
 
   if (res.status === 401 && !retried) {
-    await login();
+    await realLogin();
     return call<T>(path, init, true);
   }
   if (!res.ok) throw new Error(`${path} ${res.status}`);
   return await res.json() as T;
 }
 
-export const getBriefing = () => call<BriefingResponse>('/briefing');
-export const getMe = () => call<Me>('/me');
-export const putMe = (patch: Partial<{ jobField: string; household: string; topics: string[]; pushHour: number; pushOn: boolean }>) =>
-  call<Me>('/me', { method: 'PUT', body: JSON.stringify(patch) });
-
-export async function hasSession(): Promise<boolean> {
+async function realHasSession(): Promise<boolean> {
   return Boolean(await getSession());
 }
 
 /** 오프라인 대비 캐시 */
-export async function cacheBriefing(b: BriefingResponse): Promise<void> {
+async function realCacheBriefing(b: BriefingResponse): Promise<void> {
   await Storage.setItem('lastBriefing', JSON.stringify(b));
 }
 
-export async function readCachedBriefing(): Promise<BriefingResponse | null> {
+async function realReadCachedBriefing(): Promise<BriefingResponse | null> {
   const raw = await Storage.getItem('lastBriefing');
   if (!raw) return null;
   try { return JSON.parse(raw) as BriefingResponse; } catch { return null; }
 }
+
+export const login: () => Promise<{ onboarded: boolean }> = MOCK ? mock.login : realLogin;
+export const getBriefing: () => Promise<BriefingResponse> = MOCK ? mock.getBriefing : () => call<BriefingResponse>('/briefing');
+export const getMe: () => Promise<Me> = MOCK ? mock.getMe : () => call<Me>('/me');
+export const putMe: (patch: MePatch) => Promise<Me> = MOCK
+  ? mock.putMe
+  : (patch) => call<Me>('/me', { method: 'PUT', body: JSON.stringify(patch) });
+export const hasSession: () => Promise<boolean> = MOCK ? mock.hasSession : realHasSession;
+export const cacheBriefing: (b: BriefingResponse) => Promise<void> = MOCK ? mock.cacheBriefing : realCacheBriefing;
+export const readCachedBriefing: () => Promise<BriefingResponse | null> = MOCK ? mock.readCachedBriefing : realReadCachedBriefing;
