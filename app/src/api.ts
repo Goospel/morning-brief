@@ -9,6 +9,7 @@ const MOCK = import.meta.env.VITE_MOCK === '1';
 export type Card = {
   articleId: number; title: string; summaryKo: string;
   sourceName: string; url: string; publishedAt: string;
+  topics: string[]; imageUrl: string | null;
 };
 
 export type BriefingResponse = {

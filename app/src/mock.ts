@@ -11,6 +11,8 @@ const CARDS: Card[] = [
     sourceName: '연합뉴스',
     url: 'https://example.com/news/1',
     publishedAt: '2026-08-23T06:10:00+09:00',
+    topics: ['economy'],
+    imageUrl: 'https://picsum.photos/seed/brief1/240/240',
   },
   {
     articleId: 2,
@@ -20,6 +22,8 @@ const CARDS: Card[] = [
     sourceName: '한겨레',
     url: 'https://example.com/news/2',
     publishedAt: '2026-08-23T05:40:00+09:00',
+    topics: ['realestate', 'policy'],
+    imageUrl: 'https://picsum.photos/seed/brief2/240/240',
   },
   {
     articleId: 3,
@@ -29,6 +33,8 @@ const CARDS: Card[] = [
     sourceName: 'ZDNet Korea',
     url: 'https://example.com/news/3',
     publishedAt: '2026-08-23T04:55:00+09:00',
+    topics: ['tech', 'ai'],
+    imageUrl: 'https://picsum.photos/seed/brief3/240/240',
   },
   {
     articleId: 4,
@@ -38,6 +44,8 @@ const CARDS: Card[] = [
     sourceName: 'BBC 코리아',
     url: 'https://example.com/news/4',
     publishedAt: '2026-08-23T03:20:00+09:00',
+    topics: ['career'],
+    imageUrl: null,
   },
   {
     articleId: 5,
@@ -47,6 +55,8 @@ const CARDS: Card[] = [
     sourceName: '헬스조선',
     url: 'https://example.com/news/5',
     publishedAt: '2026-08-23T02:30:00+09:00',
+    topics: ['health'],
+    imageUrl: 'https://picsum.photos/seed/brief5/240/240',
   },
 ];
 
@@ -58,17 +68,21 @@ const ME: Me = {
   pushOn: true,
 };
 
-/** `?screen=intro` / `?screen=onboarding` 으로 시작 화면을 고른다. */
+/** `?screen=intro` / `onboarding` / `empty` / `yesterday` 로 시작 화면을 고른다. */
 const wantScreen = () => new URLSearchParams(location.search).get('screen');
 
 export const hasSession = async () => wantScreen() !== 'intro';
 
 export const login = async () => ({ onboarded: wantScreen() !== 'onboarding' });
 
-export const getBriefing = async (): Promise<BriefingResponse> =>
-  wantScreen() === 'onboarding'
-    ? { onboarded: false, date: null, isToday: false, nextHour: 7, cards: null }
-    : { onboarded: true, date: '2026-08-23', isToday: true, nextHour: null, cards: CARDS };
+export const getBriefing = async (): Promise<BriefingResponse> => {
+  switch (wantScreen()) {
+    case 'onboarding': return { onboarded: false, date: null, isToday: false, nextHour: 7, cards: null };
+    case 'empty':      return { onboarded: true, date: null, isToday: false, nextHour: 7, cards: null };
+    case 'yesterday':  return { onboarded: true, date: '2026-08-22', isToday: false, nextHour: 7, cards: CARDS };
+    default:           return { onboarded: true, date: '2026-08-23', isToday: true, nextHour: null, cards: CARDS };
+  }
+};
 
 export const getMe = async (): Promise<Me> => ME;
 
