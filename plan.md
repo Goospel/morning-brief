@@ -98,6 +98,8 @@
 ## 배포 · 클라우드 셋업 🔜
 
 > CLI 는 전역 설치가 아니라 `npx supabase`.
+>
+> ⏸ **2026-08-24 이후 일시 정지** — 조직(Free)에 `fitcheck` 과 둘이라 자리가 찼고, **한도가 프로젝트별이 아니라 조직 합산**이다(DB 500MB · Egress 5GB · 파일 1GB). `fitcheck` 존치 여부가 2026-08-26경 정해지며 그에 따라 사이징 판단이 갈린다. 그때 재개한다.
 
 - [x] Supabase 클라우드 프로젝트 생성 — `morning-brief` / ref `yyizuydiknlqyreqkacz` / Northeast Asia (Seoul). Data API 켬, **「신규 테이블 자동 노출」은 껐다**(0001 이 `service_role` 에만 명시 GRANT 한다). GitHub 통합은 끊었다 — `db push` 를 손으로 통제한다
 - [ ] `npx supabase login` (브라우저 토큰) → `npx supabase link --project-ref yyizuydiknlqyreqkacz`
