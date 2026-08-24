@@ -37,6 +37,7 @@ Deno.serve(async () => {
       const { error: updateError } = await db.from('articles').update({
         summary_ko: parsed.summary,
         topics: parsed.topics,
+        evergreen: parsed.evergreen,
         summarized_at: now,
       }).eq('id', Number(entry.custom_id));
       if (!updateError) updated++;

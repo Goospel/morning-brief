@@ -19,12 +19,25 @@ export type Candidate = {
   topics: string[];
   lang: string;
   publishedAt: Date;
+  /** 시의성이 없어 오래 살아도 되는 글. 요약 잡이 기사 단위로 판정한다. */
+  evergreen?: boolean;
 };
 
 export const BRIEFING_SIZE = 6;
 export const PER_TOPIC_MAX = 2;
+/**
+ * 브리핑 한 건에 들어갈 evergreen 상한. **보장이 아니라 상한이다** —
+ * evergreen 은 신선도가 고정이라 여러 건이 동점이 되고, 막지 않으면
+ * 「오늘의 브리핑」이 한 달 전 글로 다 찬다.
+ */
+export const EVERGREEN_MAX = 2;
 const USER_TOPIC_BONUS = 1.5;
 const FRESHNESS_MAX = 2;
+/**
+ * evergreen 의 고정 신선도. 감쇠하지 않는다 — 후보 창이 이미 상한을 준다.
+ * 서열: 오늘 뉴스(2.0) > evergreen(1.5) > 어제 뉴스(1.0) > 이틀+ 뉴스(0)
+ */
+export const EVERGREEN_FRESHNESS = 1.5;
 
 /** 생년을 연령대 밴드로 바꾼다. profile_rules 의 age_band 값과 대응한다. */
 export function ageBand(birthYear: number | null, now: Date): string | null {
@@ -55,8 +68,9 @@ export function topicWeights(profile: Profile, rules: Rule[], now: Date): Map<st
   return weights;
 }
 
-/** 하루 지날 때마다 1점씩 깎이고 0 에서 멈춘다. */
-export function freshness(publishedAt: Date, now: Date): number {
+/** 하루 지날 때마다 1점씩 깎이고 0 에서 멈춘다. evergreen 은 깎이지 않는다. */
+export function freshness(publishedAt: Date, now: Date, evergreen = false): number {
+  if (evergreen) return EVERGREEN_FRESHNESS;
   const days = (now.getTime() - publishedAt.getTime()) / 86_400_000;
   return Math.max(0, FRESHNESS_MAX - days);
 }
@@ -64,7 +78,7 @@ export function freshness(publishedAt: Date, now: Date): number {
 function score(c: Candidate, weights: Map<string, number>, now: Date): number {
   let s = 0;
   for (const topic of c.topics) s += weights.get(topic) ?? 0;
-  return s + freshness(c.publishedAt, now);
+  return s + freshness(c.publishedAt, now, c.evergreen ?? false);
 }
 
 /**
@@ -86,11 +100,15 @@ export function selectBriefing(
 
   const picked: typeof ranked = [];
   const perTopic = new Map<string, number>();
+  let evergreenCount = 0;
 
   for (const r of ranked) {
     if (picked.length >= size) break;
     if (r.c.topics.some((t) => (perTopic.get(t) ?? 0) >= PER_TOPIC_MAX)) continue;
+    // 상한이지 보장이 아니다 — 넘치는 evergreen 은 버리고 그 자리를 뉴스가 채운다.
+    if (r.c.evergreen && evergreenCount >= EVERGREEN_MAX) continue;
     picked.push(r);
+    if (r.c.evergreen) evergreenCount++;
     for (const t of r.c.topics) perTopic.set(t, (perTopic.get(t) ?? 0) + 1);
   }
 
