@@ -371,6 +371,14 @@ authorization_url_path = "/oauth/consent"
 # Allow dynamic client registration
 allow_dynamic_registration = false
 
+# 앱 전용 함수만 게이트웨이 JWT 검증을 끈다.
+# 프런트는 Supabase JWT 가 아니라 자체 HMAC 세션 토큰을 Bearer 로 보내고,
+# /login 은 아예 인증 헤더가 없다 — 켜 두면 우리 코드에 닿기 전에 401 이 난다.
+# 인증은 함수가 직접 한다(verifySession / 토스 코드 교환 / unlink 공유 시크릿).
+# 나머지 4개는 크론이 service_role Bearer 로 부르므로 검증을 켜 둔다.
+[functions.app]
+verify_jwt = false
+
 [edge_runtime]
 enabled = true
 # Supported request policies: `oneshot`, `per_worker`.
