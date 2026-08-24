@@ -82,6 +82,19 @@
 - [ ] **콘솔 등록 후**: unlink 콜백의 실제 인증 방식 확인 → 현재의 임시 공유 시크릿(`UNLINK_CALLBACK_SECRET`) 검증을 교체. 확정 전까지는 fail-closed(503/401)
 - [ ] **키 수령 후**: 복호화 키·AAD·`birthday` 포맷 확정 — 현 구현은 GCM 태그가 암호문 뒤에 붙는 표준 배치를 가정
 
+## evergreen · 시의성 없는 글 ✅ (판정 정확도 실측은 배포 후)
+
+> 설계: [2026-08-24-evergreen-design.md](docs/superpowers/specs/2026-08-24-evergreen-design.md)
+
+- [x] `articles.evergreen` + 요약 프롬프트 판정 — 기사당 1회라 추가 비용이 월 700원 수준이다(입력은 이미 보내는 중)
+- [x] 신선도 고정 1.5(감쇠 없음) · 후보 창 30일 · 브리핑 내 상한 2건
+- [x] 중복 제외를 evergreen 만 30일로 — **불변식: 중복 제외 ≥ 후보 창**. 어기면 같은 글을 한 달에 서너 번 받는다
+- [x] 보장 슬롯은 두지 않았다 — 기존 「해외 보장」이 최하위를 덮어쓰는 구조라 보장이 둘이면 서로 밀어낸다
+- [ ] **배포 후**: 실제 브리핑의 evergreen 비율을 보고 `EVERGREEN_FRESHNESS`·`EVERGREEN_MAX` 조정 — 두 값은 서열 논리로 고른 추측이지 실측이 아니다
+- [ ] **배포 후**: 판정을 실제 기사 10건+ 로 눈 대조. 테스트는 「boolean 인가」만 본다([T-004](claude-docs/troubleshooting/T-004.md) 교훈). 경계 사례(출시 리뷰·인터뷰·연말 결산)를 골라 본다
+- [ ] **배포 후**: 프롬프트를 건드렸으므로 요약문·토픽 태그 품질도 함께 대조
+- [ ] 블로그 소스 추가 — evergreen 과 독립이라 나중에 해도 된다. `npm run verify-feeds` 로 파싱 건수 먼저([T-003](claude-docs/troubleshooting/T-003.md))
+
 ## 배포 · 클라우드 셋업 🔜
 
 > CLI 는 전역 설치가 아니라 `npx supabase`.

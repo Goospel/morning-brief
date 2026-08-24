@@ -1,6 +1,6 @@
 import { isTopic, type Topic } from './topics.ts';
 
-export type Summary = { summary: string; topics: Topic[] };
+export type Summary = { summary: string; topics: Topic[]; evergreen: boolean };
 
 /** 모델이 코드펜스로 감싸는 경우가 있어 첫 { 부터 마지막 } 까지만 떼어낸다. */
 function extractJson(raw: string): string | null {
@@ -26,7 +26,8 @@ export function parseSummary(raw: string): Summary | null {
   }
 
   if (typeof parsed !== 'object' || parsed === null) return null;
-  const { summary, topics } = parsed as { summary?: unknown; topics?: unknown };
+  const { summary, topics, evergreen } = parsed as
+    { summary?: unknown; topics?: unknown; evergreen?: unknown };
 
   if (typeof summary !== 'string' || summary.trim() === '') return null;
   if (!Array.isArray(topics)) return null;
@@ -35,5 +36,7 @@ export function parseSummary(raw: string): Summary | null {
     .filter(isTopic);
   if (clean.length === 0) return null;
 
-  return { summary: summary.trim(), topics: clean };
+  // evergreen 은 요약의 부속이다 — 못 읽어도 요약을 버리지 않고 false 로 접는다.
+  // `=== true` 인 이유: 느슨하게 받으면 모델이 문자열 "true" 를 뱉을 때 조용히 통과한다.
+  return { summary: summary.trim(), topics: clean, evergreen: evergreen === true };
 }

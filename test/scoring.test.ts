@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   ageBand, topicWeights, freshness, selectBriefing,
+  EVERGREEN_FRESHNESS, EVERGREEN_MAX,
   type Profile, type Rule, type Candidate,
 } from '../supabase/functions/_shared/scoring.ts';
 
@@ -141,4 +142,88 @@ test('selectBriefing: 자리가 꽉 찼으면 최하위를 해외 기사로 교�
     candidate(99, ['tech'], 'en', 20),
   ], NOW);
   assert.ok(ids.includes(99), 'tech 가 이미 2건이어도 해외 보장이 이긴다');
+});
+
+// ── evergreen ────────────────────────────────────────────────
+// 시의성 없는 글이 후보 창·신선도 감쇠에서 살아남게 한다.
+// 설계: docs/superpowers/specs/2026-08-24-evergreen-design.md
+
+function ever(id: number, topics: string[], lang = 'ko', daysAgo = 20): Candidate {
+  return {
+    id, topics, lang, evergreen: true,
+    publishedAt: new Date(NOW.getTime() - daysAgo * 86_400_000),
+  };
+}
+
+test('freshness: evergreen 은 경과일과 무관하게 고정값이다', () => {
+  const day = 86_400_000;
+  const a = freshness(new Date(NOW.getTime() - 1 * day), NOW, true);
+  const b = freshness(new Date(NOW.getTime() - 30 * day), NOW, true);
+  assert.equal(a, EVERGREEN_FRESHNESS);
+  assert.equal(b, EVERGREEN_FRESHNESS);
+});
+
+test('freshness: evergreen 은 오늘 뉴스보다 낮고 이틀 지난 뉴스보다 높다', () => {
+  const day = 86_400_000;
+  const todayNews = freshness(NOW, NOW, false);
+  const oldNews = freshness(new Date(NOW.getTime() - 2 * day), NOW, false);
+  const green = freshness(new Date(NOW.getTime() - 30 * day), NOW, true);
+  assert.ok(green < todayNews, 'evergreen 이 오늘 뉴스를 이기면 안 된다');
+  assert.ok(green > oldNews, 'evergreen 이 이틀 지난 뉴스에 지면 안 된다');
+});
+
+test('freshness: evergreen 인자를 안 주면 기존 감쇠 그대로다', () => {
+  const d = new Date(NOW.getTime() - 86_400_000);
+  assert.equal(freshness(d, NOW), freshness(d, NOW, false));
+});
+
+test('selectBriefing: evergreen 은 상한 건수까지만 들어간다', () => {
+  // 토픽이 전부 맞아 점수가 높은 evergreen 을 상한보다 많이 준다.
+  const cands = [
+    ever(1, ['tech']), ever(2, ['ai']), ever(3, ['tech']),
+    ever(4, ['ai']), ever(5, ['tech']),
+  ];
+  const picked = selectBriefing(profile, rules, cands, NOW);
+  assert.equal(picked.length, EVERGREEN_MAX);
+});
+
+test('selectBriefing: evergreen 상한을 넘으면 나머지 자리는 뉴스가 채운다', () => {
+  const cands = [
+    ever(1, ['tech']), ever(2, ['tech']), ever(3, ['tech']), ever(4, ['tech']),
+    candidate(10, ['ai']), candidate(11, ['ai']),
+  ];
+  const picked = selectBriefing(profile, rules, cands, NOW);
+  const greenPicked = picked.filter((id) => id <= 4);
+  assert.equal(greenPicked.length, EVERGREEN_MAX);
+  assert.ok(picked.includes(10) && picked.includes(11), '뉴스가 남은 자리를 채워야 한다');
+});
+
+test('selectBriefing: evergreen 후보가 없으면 결과가 기존과 같다 (회귀 가드)', () => {
+  const cands = [
+    candidate(1, ['tech']), candidate(2, ['ai']), candidate(3, ['finance']),
+  ];
+  // 점수 순: ai(3.5) > tech(3.0) > finance(1.0). evergreen 코드가 이 순서를 안 건드려야 한다.
+  assert.deepEqual(selectBriefing(profile, rules, cands, NOW), [2, 1, 3]);
+});
+
+test('selectBriefing: 해외 보장은 evergreen 상한보다 우선한다', () => {
+  // 국내 evergreen 이 상한을 채운 뒤에도 해외 1건 보장은 지켜져야 한다.
+  // (보장이 상한에 막히면 보장이 아니게 된다 — 기존 per-topic 상한과 같은 원칙)
+  const cands = [
+    ever(1, ['tech'], 'ko'), ever(2, ['tech'], 'ko'),
+    ever(3, ['tech'], 'en'),
+  ];
+  const picked = selectBriefing(profile, rules, cands, NOW);
+  assert.ok(picked.includes(3), '해외 기사가 evergreen 상한에 막히면 안 된다');
+});
+
+test('selectBriefing: 30일 전 evergreen 이 이틀 지난 뉴스를 점수로 이긴다', () => {
+  // 이 기능의 존재 이유 그 자체다. score() 가 evergreen 을 freshness 에 안 넘기면
+  // 둘 다 신선도 0 이 돼 동점 → id 순으로 뒤집힌다.
+  // evergreen 쪽 id 를 일부러 크게 줘서 「동점이면 진다」를 만들어 둔다.
+  const cands = [
+    ever(9, ['tech'], 'ko', 30),      // evergreen, 30일 전
+    candidate(2, ['tech'], 'ko', 48), // 뉴스, 이틀 전 (신선도 0)
+  ];
+  assert.deepEqual(selectBriefing(profile, rules, cands, NOW), [9, 2]);
 });
