@@ -99,14 +99,14 @@
 
 > CLI 는 전역 설치가 아니라 `npx supabase`.
 
-- [ ] Supabase 클라우드 프로젝트 생성(리전 Seoul) — Phase 2 의 `[x]` 는 `supabase init` 로컬 스캐폴딩이었다. 클라우드 프로젝트는 아직 없다
-- [ ] `npx supabase link --project-ref <ref>`
+- [x] Supabase 클라우드 프로젝트 생성 — `morning-brief` / ref `yyizuydiknlqyreqkacz` / Northeast Asia (Seoul). Data API 켬, **「신규 테이블 자동 노출」은 껐다**(0001 이 `service_role` 에만 명시 GRANT 한다). GitHub 통합은 끊었다 — `db push` 를 손으로 통제한다
+- [ ] `npx supabase login` (브라우저 토큰) → `npx supabase link --project-ref yyizuydiknlqyreqkacz`
 - [ ] `npx supabase db push` — 0001~0005 적용. **0005 는 아직 어떤 DB 에도 적용된 적이 없다**
 - [ ] 확장 스키마 확인 — `pg_cron → cron` / `pg_net → net` 이 아니면 `invoke_job` 이 조용히 죽는다
 - [ ] Vault 시크릿 2개(`functions_base_url` / `service_role_key`) — 없으면 크론이 매번 예외를 던진다
 - [ ] 함수 시크릿 — `ANTHROPIC_API_KEY` / `SESSION_SECRET`. `SUPABASE_URL`·`SUPABASE_SERVICE_ROLE_KEY` 는 자동 주입이라 불필요
 - [x] `app` 함수만 `verify_jwt = false` — 프런트가 Supabase JWT 가 아니라 자체 HMAC 세션 토큰을 보낸다. 켜 둔 채 배포하면 우리 코드에 닿기 전에 401
-- [ ] `app/.env.production` 생성 — 지금 없어서 prod 빌드의 `VITE_API_BASE` 가 `undefined` 다. ref 가 나와야 채운다
+- [x] `app/.env.production` 생성 — prod 빌드의 `VITE_API_BASE` 가 `undefined` 이던 것을 메웠다
 - [ ] 함수 5개 배포 → 수동 스모크(collect → summarize-submit → 요약을 눈으로 대조)
 - [ ] ⚠️ `db push` 가 크론 4개를 즉시 무장시킨다 — 04:00 KST 의 summarize-submit 이 쌓인 기사 전량을 Batch 에 밀어 넣기 전에 건수를 먼저 본다
 - [ ] ⚠️ [미확인] 무료 티어는 7일 비활성이면 프로젝트를 재운다. 이 앱은 외부 요청이 0일 수 있는데 내부 pg_cron 활동이 활성으로 집계되는지 모른다 — 배포 후 며칠 관찰
