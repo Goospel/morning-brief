@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-08-24 · Supabase 클라우드 프로젝트 생성 · `app/.env.production`
+
+**의도**: 배포 대상이 없어 파이프라인이 클라우드에서 한 번도 안 돌았다. 프로젝트를 만들고, ref 가 나와야 채울 수 있던 구멍 하나를 메운다.
+
+**결과**:
+
+- **프로젝트 생성** — `morning-brief` / ref `yyizuydiknlqyreqkacz` / Northeast Asia (Seoul). 기존 조직에 `fitcheck` 이 이미 있어 Free 플랜 2개 상한을 이걸로 채웠다.
+- **「신규 테이블 자동 노출」을 껐다.** Supabase 자신도 화면에서 끄기를 권하고, 이 프로젝트는 RLS 를 전면 차단하고 `service_role` 에만 명시 GRANT 를 건다(0001). 로컬 `config.toml` 의 `auto_expose_new_tables` 가 주석 처리인 것과도 상태가 맞는다. 「자동 RLS」도 껐다 — 마이그레이션이 테이블 6개에 직접 걸고 있어 두 군데서 같은 일을 하게 된다.
+- **GitHub 통합을 끊었다.** 생성 화면에서 레포가 연결돼 있었다. 다만 **`Deploy to production` 토글은 처음부터 꺼져 있어 자동 배포가 걸린 적은 없다**(브랜칭은 Pro 전용이라 Free 에선 아예 불가). 위험은 없었지만 나중에 토글이 켜질 여지를 없앴다 — `db push` 를 손으로 통제해야 `0004_cron.sql` 이 크론을 무장시키기 전에 첫 배치 건수를 확인할 수 있다.
+- **`app/.env.production` 을 만들었다.** `.env.development`(로컬 54321)와 `.env.mock` 뿐이라 prod 빌드의 `VITE_API_BASE` 가 `undefined` 였고, 요청이 `undefined/login` 으로 나갈 뻔했다. ref 가 없어 미뤄 뒀던 항목이다. 값은 공개 URL 이라 시크릿이 아니다.
+
+---
 ## 2026-08-24 · evergreen — 시의성 없는 글이 후보 창에서 살아남게 한다
 
 **의도**: 개인·전문가 블로그를 소스로 넣고 싶은데, 넣어도 브리핑에 안 뜬다. 후보 창 3일 + 신선도 2일 감쇠가 발행이 뜸한 글을 구조적으로 배제하기 때문이다. 설계: [2026-08-24-evergreen-design.md](docs/superpowers/specs/2026-08-24-evergreen-design.md).
