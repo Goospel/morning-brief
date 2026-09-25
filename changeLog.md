@@ -5,6 +5,14 @@
 
 ---
 
+## 2026-09-25 · 트러블슈팅 검사기 최신 사본 동기화 + 승격 표시 소급
+
+**의도**: 전역 템플릿이 바뀌면서(0건 허용, guard: 두 줄 항목 허용, 2회차 줄) 옛 검사기 사본은 guard 항목을 「필수 필드 누락」으로 거부한다. 앞으로 guard 항목을 쓸 수 있게 사본을 맞춘다.
+
+**결과**: `scripts/rebuild-troubleshooting-index.ps1`·`.githooks/pre-commit`을 전역 템플릿 최신판으로 교체했다(프로젝트 고유 수정 없음). 전역 참조 문서가 승격 근거로 인용한 T-003·T-004에 `promoted: global:docs/claude-md-reference.md`를 달고 목차를 다시 만들었다.
+
+---
+
 ## 2026-08-24 · evergreen — 시의성 없는 글이 후보 창에서 살아남게 한다
 
 **의도**: 개인·전문가 블로그를 소스로 넣고 싶은데, 넣어도 브리핑에 안 뜬다. 후보 창 3일 + 신선도 2일 감쇠가 발행이 뜸한 글을 구조적으로 배제하기 때문이다. 설계: [2026-08-24-evergreen-design.md](docs/superpowers/specs/2026-08-24-evergreen-design.md).

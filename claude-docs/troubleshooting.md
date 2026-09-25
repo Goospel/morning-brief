@@ -25,8 +25,8 @@
 - [T-007](troubleshooting/T-007.md) · 한국경제 피드는 브라우저형 UA 에 Cloudflare 챌린지 HTML 을 준다 — 피드는 수집용 UA, 원문 페이지는 브라우저형 UA 로 갈라 써야 한다
 - [T-006](troubleshooting/T-006.md) · TDS Asset.Icon 은 style prop 을 프레임에 전달하지 않는다 — 크기 지정이 조용히 무시돼 전부 기본 24px 로 렌더된다
 - [T-005](troubleshooting/T-005.md) · TDS Selector의 화살표가 좁은 폭에서 텍스트 아래로 떨어졌다 — 컴포넌트 버그가 아니라 부모가 준 폭이 4px 모자랐던 것
-- [T-004](troubleshooting/T-004.md) · 요약이 정치 기사의 발언 주체를 여↔야로 뒤집었는데 테스트 37개는 전부 초록불이었다 — 형식 계측기는 내용의 참거짓을 보지 않는다
-- [T-003](troubleshooting/T-003.md) · 피드 검증기가 원시 태그 개수만 세는 바람에 파싱 0건인 소스를 통과시켰다 — 대리 지표 판정은 통과 쪽으로 조용히 고장 난다
+- [T-004](troubleshooting/T-004.md) · 요약이 정치 기사의 발언 주체를 여↔야로 뒤집었는데 테스트 37개는 전부 초록불이었다 — 형식 계측기는 내용의 참거짓을 보지 않는다 **→ global:docs/claude-md-reference.md**
+- [T-003](troubleshooting/T-003.md) · 피드 검증기가 원시 태그 개수만 세는 바람에 파싱 0건인 소스를 통과시켰다 — 대리 지표 판정은 통과 쪽으로 조용히 고장 난다 **→ global:docs/claude-md-reference.md**
 - [T-002](troubleshooting/T-002.md) · bash 큰따옴표 안의 백틱은 명령 치환으로 먹혀 문서의 코드 인용이 조용히 사라진다 — 스크립트는 성공으로 끝난다
 - [T-001](troubleshooting/T-001.md) · GitHub 레포명에 한글을 넣으면 거부가 아니라 조용히 하이픈으로 치환된다 — 요청은 201로 성공하므로 exit code로는 알 수 없다
 
